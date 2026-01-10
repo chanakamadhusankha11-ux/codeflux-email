@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodeFlux -Team v3</title>
+    <title>Aero System v3.1</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
@@ -22,7 +22,7 @@
 
     <main class="main-container">
         <header class="header">
-            <h1>CodeFlux</h1>
+            <h1>AERO</h1>
             <p>Email Distribution System</p>
         </header>
 
@@ -41,15 +41,35 @@
             </button>
             <div id="system-message"></div>
         </section>
+
+        <!-- NEW: SESSION HISTORY & PERSONAL STATS -->
+        <section class="card secondary-card">
+            <div class="personal-stats-grid">
+                <div>
+                    <label>Requested This Session</label>
+                    <span id="personal-requests">0</span>
+                </div>
+                <div>
+                    <label>Avg. Time / Request</label>
+                    <span id="personal-avg-time">0s</span>
+                </div>
+            </div>
+            <div class="history-container">
+                <label>Session History</label>
+                <ul id="history-list">
+                    <!-- History items will be added here -->
+                    <li class="history-placeholder">No emails requested yet.</li>
+                </ul>
+            </div>
+        </section>
+
     </main>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <!-- App Script -->
     <script src="script.js"></script>
 </body>
-
 </html>
-
