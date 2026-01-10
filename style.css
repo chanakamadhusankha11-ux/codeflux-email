@@ -316,3 +316,84 @@ textarea { min-height: 150px; resize: vertical; }
     border: 3px solid var(--surface);
 }
 
+/* Add this to the end of your style.css file */
+
+/* --- FLIP ANIMATION STYLES --- */
+
+.flip-container {
+    perspective: 1000px; /* This gives the 3D effect */
+    margin-bottom: 25px;
+}
+
+#email-display {
+    position: relative;
+    width: 100%;
+    min-height: 60px;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    box-shadow: none; /* We remove the shadow from the main container as it's now a wrapper */
+    background-color: transparent; /* Wrapper is now transparent */
+    border: none;
+    padding: 0;
+    cursor: default; /* Remove cursor from the wrapper */
+}
+
+/* The class that triggers the flip */
+#email-display.flipped {
+    transform: rotateY(180deg);
+}
+
+.flipper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.front, .back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden; /* For Safari */
+    backface-visibility: hidden;
+    
+    /* Re-apply the card styles to the front and back faces */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    border-radius: 12px;
+    background-color: var(--surface);
+    box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
+    word-break: break-all;
+    cursor: pointer; /* Add cursor back to the faces */
+    transition: box-shadow 0.3s;
+}
+
+.front:hover, .back:hover {
+    box-shadow: inset -5px -5px 10px var(--shadow-light), inset 5px 5px 10px var(--shadow-dark);
+}
+
+.back {
+    transform: rotateY(180deg);
+}
+
+/* Override the old loading state to work with the new structure */
+#email-display.loading .front,
+#email-display.loading .back {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+#email-display.loading .front #email-text-front::after {
+    content: '...';
+    display: inline-block;
+    animation: dots 1.4s infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+}
