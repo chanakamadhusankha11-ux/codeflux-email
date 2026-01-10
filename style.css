@@ -36,6 +36,32 @@ body {
     overflow: hidden;
 }
 
+/* Add this to the end of your style.css file */
+
+#email-display.loading {
+    cursor: wait; /* Show a waiting cursor */
+    box-shadow: none;
+    opacity: 0.7;
+}
+
+#email-display.loading #email-text::after {
+    content: '...';
+    display: inline-block;
+    animation: dots 1.4s infinite;
+}
+
+@keyframes dots {
+    0%, 20% {
+        content: '.';
+    }
+    40% {
+        content: '..';
+    }
+    60%, 100% {
+        content: '...';
+    }
+}
+
 #background-canvas {
     position: fixed;
     top: 0;
@@ -289,3 +315,4 @@ textarea { min-height: 150px; resize: vertical; }
     border-radius: 10px;
     border: 3px solid var(--surface);
 }
+
