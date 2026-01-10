@@ -62,3 +62,79 @@ body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: v
 .toast-notification.error .icon { color: #e74c3c; }
 @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
 @keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(120%); } }
+/* ======================================= */
+/* ==      AERO ADMIN PANEL FIX         == */
+/* ======================================= */
+
+/* Styles for elements specific to admin.html */
+
+.admin-body {
+    /* You can add specific body styles for admin page if needed */
+}
+
+.admin-body .card {
+    /* You can override card styles for admin if needed */
+    padding: 30px;
+}
+
+.admin-body h2 {
+    font-family: var(--font-primary);
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+/* Fix for Textarea and Input fields */
+textarea, input[type="password"] {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    background-color: rgba(0, 0, 0, 0.15); /* Match the new theme */
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+textarea:focus, input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary-glow);
+    background-color: rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0 10px rgba(121, 192, 255, 0.3);
+}
+
+textarea {
+    min-height: 150px;
+    resize: vertical;
+    font-family: var(--font-mono); /* Use mono font for emails */
+}
+
+/* Fix for Upload Button */
+#upload-btn {
+    /* This will inherit styles from #request-btn, but we can add specifics */
+    margin-top: 10px;
+    background: linear-gradient(145deg, #2ecc71, #27ae60); /* A green gradient for success action */
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
+}
+
+#upload-btn:hover {
+    box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
+    transform: translateY(-3px);
+}
+
+/* Fix for Back Link */
+.back-link {
+    display: block;
+    margin-top: 25px;
+    color: var(--primary-glow);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+}
