@@ -15,13 +15,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
         firebase.initializeApp(firebaseConfig);
-    } catch (e) { showNotification("FATAL ERROR: Could not connect to the database.", "error"); console.error(e); return; }
+    } catch (e) {
+        showNotification("FATAL ERROR: Could not connect to the database.", "error");
+        console.error(e);
+        return;
+    }
 
     const db = firebase.firestore();
     const ADMIN_PASSCODE = "123456789";
 
     // --- Dynamic Background & Theme Toggle (No changes) ---
-    // This part is self-contained and correct from previous versions.
     const canvas = document.getElementById('background-canvas'); if (canvas) { const ctx = canvas.getContext('2d'); let width, height, grid; const mouse = { x: 0, y: 0, radius: 60 }; const setup = () => { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; grid = []; const cellSize = 20; for (let y = 0; y < height + cellSize; y += cellSize) { for (let x = 0; x < width + cellSize; x += cellSize) { grid.push({ x, y }); } } }; const draw = () => { if (!ctx) return; ctx.clearRect(0, 0, width, height); const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-color').trim(); const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(); grid.forEach(point => { const dist = Math.hypot(point.x - mouse.x, point.y - mouse.y); const size = Math.max(0.5, 2 - dist / 150); if (dist < mouse.radius) { ctx.fillStyle = primaryColor; ctx.globalAlpha = Math.max(0, 0.8 - dist / mouse.radius); } else { ctx.fillStyle = gridColor; ctx.globalAlpha = 0.5; } ctx.beginPath(); ctx.arc(point.x, point.y, size, 0, Math.PI * 2); ctx.fill(); }); requestAnimationFrame(draw); }; window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; }); window.addEventListener('resize', setup); setup(); draw(); }
     const themeToggle = document.getElementById('theme-toggle'); if (themeToggle) { themeToggle.addEventListener('click', () => { document.documentElement.classList.toggle('light-mode'); localStorage.setItem('theme', document.documentElement.classList.contains('light-mode') ? 'light' : 'dark'); }); } if (localStorage.getItem('theme') === 'light') { document.documentElement.classList.add('light-mode'); }
     
@@ -44,23 +47,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =================================================
-// == USER PAGE LOGIC (ALL FEATURES INTEGRATED)
+// == USER PAGE LOGIC (ALL FEATURES INTEGRATED & STABLE)
 // =================================================
 function handleUserPage(db, showNotification) {
     // DOM Elements
     const statsCountEl = document.getElementById('stats-count');
     const requestBtn = document.getElementById('request-btn');
     const emailDisplayEl = document.getElementById('email-display');
-    const emailTextFront = document.getElementById('email-text-front');
-    const emailTextBack = document.getElementById('email-text-back');
-    const flipperFront = document.querySelector('.front');
-    const flipperBack = document.querySelector('.back');
+    const emailTextEl = document.getElementById('email-text');
     const personalRequestsEl = document.getElementById('personal-requests');
     const personalAvgTimeEl = document.getElementById('personal-avg-time');
     const historyListEl = document.getElementById('history-list');
 
     // State
-    let isFlipped = false;
     let sessionRequests = 0;
     let sessionStartTime = Date.now();
 
@@ -68,7 +67,6 @@ function handleUserPage(db, showNotification) {
     db.collection('emails').where('status', '==', 0).onSnapshot(snapshot => {
         statsCountEl.textContent = snapshot.size;
     }, error => {
-        console.error("Firestore listener error:", error);
         showNotification("DB connection issue.", "error");
     });
 
@@ -76,6 +74,10 @@ function handleUserPage(db, showNotification) {
     requestBtn.addEventListener('click', async () => {
         requestBtn.disabled = true;
         requestBtn.querySelector('.btn-text').textContent = 'REQUESTING...';
+        emailDisplayEl.style.pointerEvents = 'none'; // Disable click during request
+        emailTextEl.textContent = 'Requesting...';
+        emailTextEl.style.opacity = '0.7';
+
         showNotification("Requesting new email...", "info");
         
         try {
@@ -88,12 +90,9 @@ function handleUserPage(db, showNotification) {
             
             await db.collection('emails').doc(emailDoc.id).update({ status: 1, used_at: new Date() });
             
-            // --- UI Update & Flip ---
-            const targetTextElement = isFlipped ? emailTextFront : emailTextBack;
-            targetTextElement.textContent = emailAddress;
-            emailDisplayEl.classList.toggle('flipped');
-            isFlipped = !isFlipped;
-
+            // --- UI Update ---
+            emailTextEl.textContent = emailAddress;
+            emailTextEl.style.opacity = '1';
             showNotification("New email received!", "success");
 
             // Update stats and history
@@ -102,9 +101,11 @@ function handleUserPage(db, showNotification) {
             addToHistory(emailAddress);
         } catch (error) {
             showNotification(error.message, "error");
+            emailTextEl.textContent = 'An error occurred. Try again.';
         } finally {
             requestBtn.disabled = false;
             requestBtn.querySelector('.btn-text').textContent = 'REQUEST EMAIL';
+            emailDisplayEl.style.pointerEvents = 'auto'; // Re-enable click
         }
     });
 
@@ -135,8 +136,7 @@ function handleUserPage(db, showNotification) {
         }
     }
 
-    flipperFront.addEventListener('click', () => copyToClipboard(emailTextFront.textContent));
-    flipperBack.addEventListener('click', () => copyToClipboard(emailTextBack.textContent));
+    emailDisplayEl.addEventListener('click', () => copyToClipboard(emailTextEl.textContent));
 }
 
 // =================================================
@@ -146,24 +146,5 @@ function handleAdminPage(db, ADMIN_PASSCODE, showNotification) {
     const uploadBtn = document.getElementById('upload-btn');
     const emailInput = document.getElementById('email-input');
     const passcode_input = document.getElementById('passcode-input');
-    uploadBtn.addEventListener('click', async () => {
-        if (passcode_input.value !== ADMIN_PASSCODE) { showNotification('Invalid Passcode!', 'error'); return; }
-        const text = emailInput.value;
-        const newEmails = [...new Set(text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi) || [])];
-        if (newEmails.length === 0) { showNotification('No valid emails found.', 'error'); return; }
-        uploadBtn.disabled = true; uploadBtn.querySelector('.btn-text').textContent = 'UPLOADING...';
-        showNotification(`Uploading ${newEmails.length} emails...`, 'info');
-        const chunks = [];
-        for (let i = 0; i < newEmails.length; i += 499) { chunks.push(newEmails.slice(i, i + 499)); }
-        try {
-            for (const chunk of chunks) {
-                const batch = db.batch();
-                chunk.forEach(email => { const docRef = db.collection('emails').doc(email.toLowerCase()); batch.set(docRef, { address: email.toLowerCase(), status: 0 }, { merge: true }); });
-                await batch.commit();
-            }
-            showNotification(`Successfully uploaded ${newEmails.length} emails!`, 'success');
-            emailInput.value = '';
-        } catch (error) { showNotification(`Upload Error: ${error.message}`, 'error');
-        } finally { uploadBtn.disabled = false; uploadBtn.querySelector('.btn-text').textContent = 'UPLOAD EMAILS'; }
-    });
+    uploadBtn.addEventListener('click', async () => { if (passcode_input.value !== ADMIN_PASSCODE) { showNotification('Invalid Passcode!', 'error'); return; } const text = emailInput.value; const newEmails = [...new Set(text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi) || [])]; if (newEmails.length === 0) { showNotification('No valid emails found.', 'error'); return; } uploadBtn.disabled = true; uploadBtn.querySelector('.btn-text').textContent = 'UPLOADING...'; showNotification(`Uploading ${newEmails.length} emails...`, 'info'); const chunks = []; for (let i = 0; i < newEmails.length; i += 499) { chunks.push(newEmails.slice(i, i + 499)); } try { for (const chunk of chunks) { const batch = db.batch(); chunk.forEach(email => { const docRef = db.collection('emails').doc(email.toLowerCase()); batch.set(docRef, { address: email.toLowerCase(), status: 0 }, { merge: true }); }); await batch.commit(); } showNotification(`Successfully uploaded ${newEmails.length} emails!`, 'success'); emailInput.value = ''; } catch (error) { showNotification(`Upload Error: ${error.message}`, 'error'); } finally { uploadBtn.disabled = false; uploadBtn.querySelector('.btn-text').textContent = 'UPLOAD EMAILS'; } });
 }
