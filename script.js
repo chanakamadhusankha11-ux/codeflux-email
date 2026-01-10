@@ -14,17 +14,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
 
     try {
+        // Use v8 compatibility scripts in HTML
         firebase.initializeApp(firebaseConfig);
     } catch (e) {
         console.error("Firebase initialization failed.", e);
-        return; // Stop execution
+        const systemMessage = document.getElementById('system-message');
+        if(systemMessage) {
+            systemMessage.textContent = "FATAL ERROR: Could not connect to the database.";
+            systemMessage.style.color = '#ff4757';
+        }
+        return;
     }
 
     const db = firebase.firestore();
     const ADMIN_PASSCODE = "123456789";
 
     // --- Dynamic Background & Theme Toggle (No changes) ---
-    // (This part remains the same)
     const canvas = document.getElementById('background-canvas');
     if (canvas) {
         const ctx = canvas.getContext('2d'); let width, height, grid; const mouse = { x: 0, y: 0, radius: 60 };
@@ -45,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =================================================
-// == USER PAGE LOGIC (WITH NEW FEATURES)
+// == USER PAGE LOGIC (WITH ALL FEATURES & FIXES)
 // =================================================
 function handleUserPage(db) {
     // DOM Elements
@@ -55,58 +60,36 @@ function handleUserPage(db) {
     const emailDisplayEl = document.getElementById('email-display');
     const copyFeedbackEl = document.getElementById('copy-feedback');
     const systemMessageEl = document.getElementById('system-message');
-    // New Feature Elements
     const personalRequestsEl = document.getElementById('personal-requests');
     const personalAvgTimeEl = document.getElementById('personal-avg-time');
     const historyListEl = document.getElementById('history-list');
 
-    // State for new features
+    // State
     let sessionRequests = 0;
     let sessionStartTime = Date.now();
     let audioUnlocked = false;
 
-    // --- Real-time listener for global stats ---
+    // Real-time listener for global stats
     db.collection('emails').where('status', '==', 0).onSnapshot(snapshot => {
         statsCountEl.textContent = snapshot.size;
     }, error => {
         console.error("Firestore listener error:", error);
     });
 
-    // --- Update Personal Stats ---
-    function updatePersonalStats() {
-        personalRequestsEl.textContent = sessionRequests;
-        if (sessionRequests > 0) {
-            const elapsedTime = (Date.now() - sessionStartTime) / 1000; // in seconds
-            const avgTime = (elapsedTime / sessionRequests).toFixed(1);
-            personalAvgTimeEl.textContent = `${avgTime}s`;
-        }
-    }
-    
-    // --- Add to History ---
-    function addToHistory(email) {
-        // Remove placeholder if it exists
-        const placeholder = historyListEl.querySelector('.history-placeholder');
-        if (placeholder) {
-            placeholder.remove();
-        }
-
-        const li = document.createElement('li');
-        li.textContent = email;
-        li.title = "Click to copy this email";
-        li.addEventListener('click', () => copyToClipboard(email, true));
-        
-        // Add to the top of the list
-        historyListEl.prepend(li);
-    }
-    
-    // --- Main Request Logic ---
+    // --- MAIN REQUEST LOGIC ---
     requestBtn.addEventListener('click', async () => {
         if (!audioUnlocked) { audioUnlocked = true; }
 
+        // 1. SET LOADING STATE
         requestBtn.disabled = true;
         requestBtn.querySelector('.btn-text').textContent = 'REQUESTING...';
+        emailDisplayEl.classList.add('loading');
+        emailDisplayEl.style.pointerEvents = 'none';
+        emailTextEl.textContent = 'Requesting new email';
+        systemMessageEl.textContent = '';
         
         try {
+            // 2. FETCH AND UPDATE DATA
             const query = db.collection('emails').where('status', '==', 0).limit(1);
             const snapshot = await query.get();
             if (snapshot.empty) throw new Error("SYSTEM EMPTY");
@@ -119,33 +102,59 @@ function handleUserPage(db) {
                 used_at: new Date()
             });
 
-            // Update UI
+            // 3. UPDATE UI ON SUCCESS
             emailTextEl.textContent = emailAddress;
             systemMessageEl.textContent = '✅ Email received! Click to copy.';
+            systemMessageEl.style.color = 'var(--primary)';
             
-            // --- Update New Features ---
             sessionRequests++;
             updatePersonalStats();
             addToHistory(emailAddress);
-            // ---------------------------
 
         } catch (error) {
+            // 4. HANDLE ERRORS
             systemMessageEl.textContent = `❌ ${error.message}`;
+            systemMessageEl.style.color = '#ff4757';
+            emailTextEl.textContent = 'An error occurred. Try again.';
         } finally {
+            // 5. ALWAYS RESET UI STATE
             requestBtn.disabled = false;
             requestBtn.querySelector('.btn-text').textContent = 'REQUEST EMAIL';
+            emailDisplayEl.classList.remove('loading');
+            emailDisplayEl.style.pointerEvents = 'auto';
         }
     });
 
-    // --- Unified Copy Logic ---
+    // --- HELPER FUNCTIONS ---
+    function updatePersonalStats() {
+        personalRequestsEl.textContent = sessionRequests;
+        if (sessionRequests > 0) {
+            const elapsedTime = (Date.now() - sessionStartTime) / 1000; // seconds
+            const avgTime = (elapsedTime / sessionRequests).toFixed(1);
+            personalAvgTimeEl.textContent = `${avgTime}s`;
+        }
+    }
+
+    function addToHistory(email) {
+        const placeholder = historyListEl.querySelector('.history-placeholder');
+        if (placeholder) placeholder.remove();
+
+        const li = document.createElement('li');
+        li.textContent = email;
+        li.title = "Click to copy this email";
+        li.addEventListener('click', () => copyToClipboard(email, true));
+        historyListEl.prepend(li);
+    }
+    
     function copyToClipboard(text, isFromHistory = false) {
         if (text && text.includes('@')) {
             navigator.clipboard.writeText(text).then(() => {
-                if (!isFromHistory) { // Only show popup for main display copy
-                    copyFeedbackEl.classList.add('show');
-                    setTimeout(() => copyFeedbackEl.classList.remove('show'), 1500);
-                } else {
-                    // Optional: give feedback for history copy too
+                const feedbackEl = isFromHistory ? null : copyFeedbackEl; // Only show main popup
+                if (feedbackEl) {
+                    feedbackEl.classList.add('show');
+                    setTimeout(() => feedbackEl.classList.remove('show'), 1500);
+                } else if (isFromHistory) {
+                    // Optional: provide a different feedback for history clicks
                     alert(`Copied from history: ${text}`);
                 }
             }).catch(err => {
@@ -154,17 +163,15 @@ function handleUserPage(db) {
         }
     }
 
-    // Add event listener to main display
     emailDisplayEl.addEventListener('click', () => {
         copyToClipboard(emailTextEl.textContent);
     });
 }
 
 // =================================================
-// == ADMIN PAGE LOGIC (No changes needed)
+// == ADMIN PAGE LOGIC (No changes)
 // =================================================
 function handleAdminPage(db, ADMIN_PASSCODE) {
-    // The admin logic remains the same.
     const uploadBtn = document.getElementById('upload-btn');
     const emailInput = document.getElementById('email-input');
     const passcode_input = document.getElementById('passcode-input');
