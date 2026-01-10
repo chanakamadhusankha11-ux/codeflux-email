@@ -21,43 +21,60 @@ document.addEventListener('DOMContentLoaded', () => {
     const ADMIN_PASSCODE = "123456789";
 
     // --- Dynamic Background & Theme Toggle (No changes) ---
-    // (This part remains the same)
     // ... [The previous background and theme code goes here for brevity] ...
+    
+    // --- NOTIFICATION HANDLER ---
+    function showNotification(message, type = 'info') {
+        const container = document.getElementById('notification-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        
+        let icon = 'ℹ️'; // Default info icon
+        if (type === 'success') icon = '✅';
+        if (type === 'error') icon = '❌';
+
+        toast.innerHTML = `
+            <div class="icon">${icon}</div>
+            <div class="message">${message}</div>
+        `;
+        
+        container.appendChild(toast);
+
+        // Remove the toast after the animation ends
+        setTimeout(() => {
+            toast.remove();
+        }, 4500); // Must be slightly longer than the animation duration
+    }
 
     // --- Main Logic Router ---
     if (document.getElementById('request-btn')) {
-        handleUserPage(db);
+        handleUserPage(db, showNotification);
     } else if (document.getElementById('upload-btn')) {
-        handleAdminPage(db, ADMIN_PASSCODE);
+        handleAdminPage(db, ADMIN_PASSCODE, showNotification);
     }
 });
 
 // =================================================
-// == USER PAGE LOGIC (WITH FLIP EFFECT)
+// == USER PAGE LOGIC (WITH NOTIFICATIONS)
 // =================================================
-function handleUserPage(db) {
+function handleUserPage(db, showNotification) {
     // DOM Elements
-    const statsCountEl = document.getElementById('stats-count');
     const requestBtn = document.getElementById('request-btn');
     const emailDisplayEl = document.getElementById('email-display');
-    const copyFeedbackEl = document.getElementById('copy-feedback');
-    const systemMessageEl = document.getElementById('system-message');
     // Flip Elements
     const emailTextFront = document.getElementById('email-text-front');
     const emailTextBack = document.getElementById('email-text-back');
     const flipperFront = document.querySelector('.front');
     const flipperBack = document.querySelector('.back');
-
-    // State
-    let isFlipped = false; // To track the card's state
+    let isFlipped = false;
 
     // --- MAIN REQUEST LOGIC ---
     requestBtn.addEventListener('click', async () => {
         requestBtn.disabled = true;
         requestBtn.querySelector('.btn-text').textContent = 'REQUESTING...';
-        
-        // Show loading state on the currently visible face
-        emailDisplayEl.classList.add('loading');
+        showNotification("Requesting new email...", "info");
         
         try {
             const query = db.collection('emails').where('status', '==', 0).limit(1);
@@ -69,32 +86,19 @@ function handleUserPage(db) {
             
             await db.collection('emails').doc(emailDoc.id).update({ status: 1, used_at: new Date() });
 
-            // --- FLIP ANIMATION LOGIC ---
-            // 1. Determine which side to update (the hidden one)
+            // --- FLIP ANIMATION & NOTIFICATION ---
             const targetTextElement = isFlipped ? emailTextFront : emailTextBack;
             targetTextElement.textContent = emailAddress;
-
-            // 2. Flip the card
             emailDisplayEl.classList.toggle('flipped');
-            isFlipped = !isFlipped; // Update the state
+            isFlipped = !isFlipped;
 
-            // 3. Update messages after flip completes
-            setTimeout(() => {
-                systemMessageEl.textContent = '✅ Email received! Click to copy.';
-                systemMessageEl.style.color = 'var(--primary)';
-            }, 300); // 300ms is half of the flip duration
-            
-            // --- Update other features (stats, history) ---
-            // sessionRequests++; updatePersonalStats(); addToHistory(emailAddress);
+            showNotification("New email received!", "success");
 
         } catch (error) {
-            systemMessageEl.textContent = `❌ ${error.message}`;
-            systemMessageEl.style.color = '#ff4757';
+            showNotification(error.message, "error");
         } finally {
-            // ALWAYS reset the UI state
             requestBtn.disabled = false;
             requestBtn.querySelector('.btn-text').textContent = 'REQUEST EMAIL';
-            emailDisplayEl.classList.remove('loading');
         }
     });
 
@@ -102,29 +106,63 @@ function handleUserPage(db) {
     function copyToClipboard(text) {
         if (text && text.includes('@')) {
             navigator.clipboard.writeText(text).then(() => {
-                copyFeedbackEl.classList.add('show');
-                setTimeout(() => copyFeedbackEl.classList.remove('show'), 1500);
+                showNotification(`Copied: ${text}`, "success");
             }).catch(err => {
-                alert('Could not copy email automatically.');
+                showNotification("Failed to copy email.", "error");
             });
         }
     }
 
-    // Add event listeners to BOTH faces of the card
-    flipperFront.addEventListener('click', () => {
-        copyToClipboard(emailTextFront.textContent);
-    });
-    flipperBack.addEventListener('click', () => {
-        copyToClipboard(emailTextBack.textContent);
-    });
+    flipperFront.addEventListener('click', () => copyToClipboard(emailTextFront.textContent));
+    flipperBack.addEventListener('click', () => copyToClipboard(emailTextBack.textContent));
 
-    // Other helper functions like updatePersonalStats, addToHistory can be here
+    // Other helper functions like stats, history can be here
 }
 
 // =================================================
-// == ADMIN PAGE LOGIC (No changes needed)
+// == ADMIN PAGE LOGIC (WITH NOTIFICATIONS)
 // =================================================
-function handleAdminPage(db, ADMIN_PASSCODE) {
-    // This function remains the same.
-    // ...
+function handleAdminPage(db, ADMIN_PASSCODE, showNotification) {
+    const uploadBtn = document.getElementById('upload-btn');
+    const emailInput = document.getElementById('email-input');
+    const passcode_input = document.getElementById('passcode-input');
+
+    uploadBtn.addEventListener('click', async () => {
+        if (passcode_input.value !== ADMIN_PASSCODE) {
+            showNotification('Invalid Passcode!', 'error');
+            return;
+        }
+        
+        const text = emailInput.value;
+        const newEmails = [...new Set(text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi) || [])];
+        if (newEmails.length === 0) {
+            showNotification('No valid emails found to upload.', 'error');
+            return;
+        }
+
+        uploadBtn.disabled = true;
+        uploadBtn.querySelector('.btn-text').textContent = 'UPLOADING...';
+        showNotification(`Uploading ${newEmails.length} emails...`, 'info');
+        
+        const chunks = [];
+        for (let i = 0; i < newEmails.length; i += 499) { chunks.push(newEmails.slice(i, i + 499)); }
+
+        try {
+            for (const chunk of chunks) {
+                const batch = db.batch();
+                chunk.forEach(email => {
+                    const docRef = db.collection('emails').doc(email.toLowerCase());
+                    batch.set(docRef, { address: email.toLowerCase(), status: 0 }, { merge: true });
+                });
+                await batch.commit();
+            }
+            showNotification(`Successfully uploaded ${newEmails.length} emails!`, 'success');
+            emailInput.value = '';
+        } catch (error) {
+            showNotification(`Upload Error: ${error.message}`, 'error');
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.querySelector('.btn-text').textContent = 'UPLOAD EMAILS';
+        }
+    });
 }
