@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
         firebase.initializeApp(firebaseConfig);
     } catch (e) {
         console.error("Firebase initialization failed. Please check your config.", e);
-        // Display an error to the user
         const systemMessage = document.getElementById('system-message');
         if(systemMessage) {
             systemMessage.textContent = "FATAL ERROR: Could not connect to the database.";
@@ -74,10 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             requestAnimationFrame(draw);
         };
         
-        window.addEventListener('mousemove', e => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
         window.addEventListener('resize', setup);
         setup();
         draw();
@@ -105,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =================================================
-// == USER PAGE LOGIC
+// == USER PAGE LOGIC (WITH THE FIX)
 // =================================================
 function handleUserPage(db) {
     const statsCountEl = document.getElementById('stats-count');
@@ -116,29 +112,23 @@ function handleUserPage(db) {
     const systemMessageEl = document.getElementById('system-message');
     let audioUnlocked = false;
 
-    // Sound files could be loaded here if needed
-
     // Real-time listener for stats
     db.collection('emails').where('status', '==', 0).onSnapshot(snapshot => {
         const currentCount = parseInt(statsCountEl.textContent, 10) || 0;
         const newCount = snapshot.size;
         
-        // Animate counter
         if (currentCount !== newCount) {
             const animateCount = (start, end) => {
                 let current = start;
                 const duration = 500;
                 const range = end - start;
                 const startTime = performance.now();
-
                 const step = (timestamp) => {
                     const elapsed = timestamp - startTime;
                     const progress = Math.min(elapsed / duration, 1);
                     current = start + Math.floor(progress * range);
                     statsCountEl.textContent = current;
-                    if (progress < 1) {
-                        requestAnimationFrame(step);
-                    }
+                    if (progress < 1) requestAnimationFrame(step);
                 };
                 requestAnimationFrame(step);
             };
@@ -146,7 +136,6 @@ function handleUserPage(db) {
         } else {
             statsCountEl.textContent = newCount;
         }
-
     }, error => {
         console.error("Firestore listener error:", error);
         systemMessageEl.textContent = "Error connecting to database. Please refresh.";
@@ -154,7 +143,7 @@ function handleUserPage(db) {
     });
 
     requestBtn.addEventListener('click', async () => {
-        if (!audioUnlocked) { /* Unlock audio logic */ audioUnlocked = true; }
+        if (!audioUnlocked) { audioUnlocked = true; }
 
         requestBtn.disabled = true;
         requestBtn.querySelector('.btn-text').textContent = 'REQUESTING...';
@@ -168,7 +157,8 @@ function handleUserPage(db) {
                 const doc = snapshot.docs[0];
                 transaction.update(doc.ref, {
                     status: 1,
-                    used_at: firebase.firestore.FieldValue.serverTimestamp()
+                    // THE FIX IS HERE: Using client-side timestamp instead of server timestamp
+                    used_at: new Date() 
                 });
                 return doc.data().address;
             });
@@ -231,7 +221,6 @@ function handleAdminPage(db, ADMIN_PASSCODE) {
         systemMessageEl.textContent = `Uploading ${newEmails.length} emails...`;
         systemMessageEl.style.color = 'var(--text-secondary)';
         
-        // Firebase batch can only handle 500 operations. We need to split it.
         const chunks = [];
         for (let i = 0; i < newEmails.length; i += 499) {
             chunks.push(newEmails.slice(i, i + 499));
