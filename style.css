@@ -397,3 +397,85 @@ textarea { min-height: 150px; resize: vertical; }
     40% { content: '..'; }
     60%, 100% { content: '...'; }
 }
+
+/* Add this to the end of your style.css file */
+
+/* --- TOAST NOTIFICATION STYLES --- */
+
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999; /* Should be on top of everything */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast-notification {
+    width: 320px;
+    padding: 15px 20px;
+    border-radius: 10px;
+    background-color: var(--surface);
+    color: var(--text-primary);
+    box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    opacity: 0;
+    transform: translateX(100%);
+    animation: slideIn 0.5s forwards, slideOut 0.5s 4s forwards; /* Stays for 4s */
+    position: relative;
+    overflow: hidden;
+    border-left: 5px solid;
+}
+
+.toast-notification .icon {
+    font-size: 1.5rem;
+}
+
+.toast-notification .message {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Notification Types (Colors) */
+.toast-notification.success {
+    border-left-color: #2ecc71; /* Green */
+}
+.toast-notification.success .icon {
+    color: #2ecc71;
+}
+
+.toast-notification.info {
+    border-left-color: var(--primary); /* Blue */
+}
+.toast-notification.info .icon {
+    color: var(--primary);
+}
+
+.toast-notification.error {
+    border-left-color: #e74c3c; /* Red */
+}
+.toast-notification.error .icon {
+    color: #e74c3c;
+}
+
+/* Animations */
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(120%);
+    }
+}
