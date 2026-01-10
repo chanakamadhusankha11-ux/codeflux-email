@@ -27,6 +27,9 @@ body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: v
 .stats-display { margin-bottom: 25px; }
 .stats-display .counter-value { font-family: 'Roboto Mono', monospace; font-size: 3.5rem; font-weight: 700; color: var(--primary); transition: color 0.3s; }
 .stats-display label { font-size: 1rem; color: var(--text-secondary); }
+#email-display { min-height: 60px; padding: 15px; margin-bottom: 25px; border-radius: 12px; cursor: pointer; box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); display: flex; justify-content: center; align-items: center; transition: all 0.3s; word-break: break-all; }
+#email-display:hover { box-shadow: inset -5px -5px 10px var(--shadow-light), inset 5px 5px 10px var(--shadow-dark); }
+#email-text { opacity: 0.7; }
 #request-btn, #upload-btn { width: 100%; padding: 18px 0; border: none; border-radius: 12px; background-color: var(--surface); border: 1px solid var(--shadow-light); box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark); color: var(--text-primary); font-size: 1rem; font-weight: 600; cursor: pointer; position: relative; overflow: hidden; transition: all 0.2s ease-in-out; }
 #request-btn:active, #upload-btn:active { box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); transform: scale(0.98); color: var(--primary); }
 #request-btn:disabled { cursor: not-allowed; opacity: 0.6; }
@@ -47,13 +50,6 @@ body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: v
 #history-list::-webkit-scrollbar { width: 8px; }
 #history-list::-webkit-scrollbar-track { background: transparent; }
 #history-list::-webkit-scrollbar-thumb { background-color: var(--primary); border-radius: 10px; border: 3px solid var(--surface); }
-.flip-container { perspective: 1000px; margin-bottom: 25px; }
-#email-display { position: relative; width: 100%; min-height: 60px; transition: transform 0.6s; transform-style: preserve-3d; background-color: transparent; border: none; padding: 0; }
-#email-display.flipped { transform: rotateY(180deg); }
-.flipper { position: relative; width: 100%; height: 100%; }
-.front, .back { position: absolute; top: 0; left: 0; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; padding: 15px; border-radius: 12px; background-color: var(--surface); box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); word-break: break-all; transition: box-shadow 0.3s; }
-.copyable:hover { box-shadow: inset -5px -5px 10px var(--shadow-light), inset 5px 5px 10px var(--shadow-dark); }
-.back { transform: rotateY(180deg); }
 #notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
 .toast-notification { width: 320px; padding: 15px 20px; border-radius: 10px; background-color: var(--surface); color: var(--text-primary); box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark); display: flex; align-items: center; gap: 15px; opacity: 0; transform: translateX(100%); animation: slideIn 0.5s forwards, slideOut 0.5s 4s forwards; position: relative; overflow: hidden; border-left: 5px solid; }
 .toast-notification .icon { font-size: 1.5rem; }
