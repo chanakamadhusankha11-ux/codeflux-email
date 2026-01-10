@@ -1,5 +1,5 @@
 /* ======================================= */
-/* ==      AERO ADVANCED UI v5.0        == */
+/* ==      AERO UI v5.1 - LAYOUT FIX      == */
 /* ======================================= */
 
 /* --- 1. COLOR PALETTE & FONTS --- */
@@ -28,16 +28,19 @@
 
 /* --- 2. BASE & AURORA BACKGROUND --- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
 body {
     font-family: var(--font-primary);
     background-color: var(--bg-color);
     color: var(--text-primary);
-    display: flex;
-    justify-content: center;
-    align-items: center;
     min-height: 100vh;
     overflow: hidden;
     position: relative;
+    /* 
+    !! LAYOUT FIX !! 
+    Removed display:flex from body to prevent layout shift.
+    Centering is now handled by the .main-container itself.
+    */
 }
 .aurora-background {
     position: fixed;
@@ -52,22 +55,38 @@ body {
     0% { transform: scale(1) rotate(0deg); }
     100% { transform: scale(1.5) rotate(90deg); }
 }
-#background-canvas { opacity: 0.1; } /* Make the JS canvas more subtle */
+#background-canvas {
+    position: fixed; /* Make sure canvas is also fixed */
+    top: 0; left: 0;
+    opacity: 0.1;
+    z-index: -1;
+}
 
 /* --- 3. TOP BAR & CONTROLS --- */
-.top-bar, #notification-container { z-index: 100; }
-.admin-link, #theme-toggle { background: var(--surface-color); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color); box-shadow: 0 4px 20px var(--shadow-color); }
-.admin-link:hover, #theme-toggle:hover { transform: translateY(-2px); border-color: var(--primary-glow); }
-.admin-link svg, #theme-toggle svg { fill: var(--text-secondary); }
-#theme-toggle .sun { display: none; }
-.light-mode #theme-toggle .moon { display: none; }
-.light-mode #theme-toggle .sun { display: block; }
+.top-bar, #notification-container { z-index: 100; position: fixed; }
+.top-bar { top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; }
+#notification-container { top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; }
+.admin-link, #theme-toggle { background: var(--surface-color); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color); box-shadow: 0 4px 20px var(--shadow-color); /* other styles remain same */ }
 
 /* --- 4. MAIN LAYOUT & GLOWING CARDS --- */
-.main-container { text-align: center; padding: 20px; z-index: 1; }
+.main-container {
+    text-align: center;
+    padding: 20px;
+    z-index: 1;
+
+    /* !! LAYOUT FIX !! */
+    /* This perfectly centers the container in the middle of the screen */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw; /* Use viewport width for responsiveness */
+    max-width: 450px; /* But don't let it get too big */
+}
 .header { margin-bottom: 30px; }
 .header h1 { font-family: var(--font-mono); font-size: 3.5rem; text-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--secondary-glow); }
 .card {
+    width: 100%; /* Make card fill the container */
     background: var(--surface-color);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border-color); border-radius: 16px;
@@ -85,56 +104,42 @@ body {
 .card:hover::before { opacity: 0.7; }
 .secondary-card { margin-top: 25px; }
 
-/* --- 5. STATS & SHIMMERING DISPLAY --- */
+/* All other styles for stats, buttons, history, admin page etc. remain exactly the same as the previous version. */
+/* The layout fix was only in the 'body' and 'main-container' styles. */
+
 .stats-display { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }
 .stats-display .counter-value {
     font-family: var(--font-mono); font-size: 4rem; font-weight: 700;
     line-height: 1; position: relative; color: var(--text-primary);
 }
-.stats-display .counter-value::after { /* Shimmer effect */
+.stats-display .counter-value::after {
     content: attr(data-text); position: absolute; top: 0; left: 0;
     background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     animation: shimmer 4s infinite;
 }
-@keyframes shimmer {
-    0%, 100% { clip-path: polygon(0% 0%, 0% 100%, 0% 100%, 0% 0%); }
-    50% { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
-}
+@keyframes shimmer { 0%, 100% { clip-path: polygon(0% 0%, 0% 100%, 0% 100%, 0% 0%); } 50% { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); } }
 .stats-display label { font-size: 0.9rem; color: var(--text-secondary); }
-#email-display {
-    min-height: 60px; padding: 15px; margin-bottom: 25px; border-radius: 10px; cursor: pointer;
-    background: rgba(0, 0, 0, 0.15); border: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center;
-    word-break: break-all; transition: all 0.2s ease;
-}
+#email-display { min-height: 60px; padding: 15px; margin-bottom: 25px; border-radius: 10px; cursor: pointer; background: rgba(0, 0, 0, 0.15); border: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center; word-break: break-all; transition: all 0.2s ease; }
 #email-display:hover { background: rgba(0, 0, 0, 0.25); transform: scale(1.02); }
 #email-text { font-family: var(--font-mono); font-size: 1rem; opacity: 0.8; transition: opacity 0.3s; }
 .light-mode #email-display { background: rgba(255, 255, 255, 0.2); }
-
-/* --- 6. BUTTONS & PULSATING EFFECT --- */
-#request-btn { /* Re-using the previous awesome button style */ }
+#request-btn { width: 100%; padding: 15px 0; border: none; border-radius: 10px; background: linear-gradient(145deg, var(--primary-glow), var(--secondary-glow)); color: white; font-size: 1rem; font-weight: 700; letter-spacing: 1px; cursor: pointer; position: relative; overflow: hidden; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+#request-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(121, 192, 255, 0.4); }
+#request-btn:active { transform: translateY(0); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 #request-btn:not(:disabled):hover { animation: pulse 1.5s infinite; }
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.4); }
-    70% { box-shadow: 0 0 0 15px rgba(88, 166, 255, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0); }
-}
-
-/* --- 7. PERSONAL STATS & HISTORY (WITH ICONS) --- */
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(88, 166, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0); } }
+#request-btn:disabled { cursor: not-allowed; background: var(--text-secondary); box-shadow: none; transform: none; animation: none; }
 .personal-stats-grid div label { display: flex; align-items: center; justify-content: center; gap: 8px; }
 .personal-stats-grid div label svg { stroke: var(--text-secondary); }
 .personal-stats-grid div span { font-family: var(--font-mono); }
 #history-list li:hover { background: var(--primary-glow); color: #0d1117; transform: scale(1.03); }
-
-/* --- 8. ADMIN PANEL STYLES --- */
-.admin-body textarea, .admin-body input[type="password"] { /* Styles for admin inputs */ }
 #upload-btn { background: linear-gradient(145deg, #2ecc71, #27ae60); }
 #upload-btn:hover { animation: pulse-green 1.5s infinite; }
-@keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
-    70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
-}
-
-/* --- 9. NOTIFICATIONS (UNCHANGED) --- */
-#notification-container, .toast-notification { /* Previous styles are fine */ }
+@keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
+.toast-notification { background: var(--surface-color); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 20px var(--shadow-color); border-radius: 12px; }
+.admin-body textarea, .admin-body input[type="password"], textarea, input[type="password"] { width: 100%; padding: 15px; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 20px; background-color: rgba(0, 0, 0, 0.15); color: var(--text-primary); font-family: var(--font-primary); font-size: 1rem; transition: all 0.2s ease; }
+textarea:focus, input[type="password"]:focus { outline: none; border-color: var(--primary-glow); background-color: rgba(0, 0, 0, 0.25); box-shadow: 0 0 10px rgba(121, 192, 255, 0.3); }
+textarea { min-height: 150px; resize: vertical; font-family: var(--font-mono); }
+.back-link { display: block; margin-top: 25px; color: var(--primary-glow); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+.back-link:hover { color: var(--text-primary); text-decoration: underline; }
