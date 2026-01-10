@@ -1,481 +1,68 @@
 :root {
-    --bg: #2a2a3e;
-    --surface: #34344e;
-    --primary: #00c6ff;
-    --secondary: #0072ff;
-    --text-primary: #f0f0f5;
-    --text-secondary: #a0a0c0;
-    --shadow-light: rgba(255, 255, 255, 0.05);
-    --shadow-dark: rgba(0, 0, 0, 0.4);
-    --grid-color: rgba(255, 255, 255, 0.03);
+    --bg: #2a2a3e; --surface: #34344e; --primary: #00c6ff; --secondary: #0072ff;
+    --text-primary: #f0f0f5; --text-secondary: #a0a0c0; --shadow-light: rgba(255, 255, 255, 0.05);
+    --shadow-dark: rgba(0, 0, 0, 0.4); --grid-color: rgba(255, 255, 255, 0.03);
 }
-
 .light-mode {
-    --bg: #eef0f5;
-    --surface: #e6e8ee;
-    --primary: #0072ff;
-    --secondary: #00c6ff;
-    --text-primary: #34344e;
-    --text-secondary: #5a5a7a;
-    --shadow-light: rgba(255, 255, 255, 0.9);
-    --shadow-dark: rgba(0, 0, 0, 0.1);
-    --grid-color: rgba(0, 0, 0, 0.05);
+    --bg: #eef0f5; --surface: #e6e8ee; --primary: #0072ff; --secondary: #00c6ff;
+    --text-primary: #34344e; --text-secondary: #5a5a7a; --shadow-light: rgba(255, 255, 255, 0.9);
+    --shadow-dark: rgba(0, 0, 0, 0.1); --grid-color: rgba(0, 0, 0, 0.05);
 }
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-    font-family: 'Poppins', sans-serif;
-    background-color: var(--bg);
-    color: var(--text-primary);
-    transition: background-color 0.3s, color 0.3s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    overflow: hidden;
-}
-
-/* Add this to the end of your style.css file */
-
-#email-display.loading {
-    cursor: wait; /* Show a waiting cursor */
-    box-shadow: none;
-    opacity: 0.7;
-}
-
-#email-display.loading #email-text::after {
-    content: '...';
-    display: inline-block;
-    animation: dots 1.4s infinite;
-}
-
-@keyframes dots {
-    0%, 20% {
-        content: '.';
-    }
-    40% {
-        content: '..';
-    }
-    60%, 100% {
-        content: '...';
-    }
-}
-
-#background-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-}
-
-.top-bar {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 10;
-}
-
-.admin-link, #theme-toggle {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background-color: var(--surface);
-    border: 1px solid var(--shadow-light);
-    box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-}
-.admin-link:active, #theme-toggle:active {
-    box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
-    transform: scale(0.95);
-}
-.admin-link svg, #theme-toggle svg {
-    width: 20px;
-    height: 20px;
-    fill: var(--text-secondary);
-    transition: fill 0.3s;
-}
-.admin-link:hover svg, #theme-toggle:hover svg {
-    fill: var(--primary);
-}
+body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: var(--text-primary); transition: background-color 0.3s, color 0.3s; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+#background-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+.top-bar { position: fixed; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+.admin-link, #theme-toggle { width: 44px; height: 44px; border-radius: 50%; background-color: var(--surface); border: 1px solid var(--shadow-light); box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s ease-in-out; }
+.admin-link:active, #theme-toggle:active { box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); transform: scale(0.95); }
+.admin-link svg, #theme-toggle svg { width: 20px; height: 20px; fill: var(--text-secondary); transition: fill 0.3s; }
+.admin-link:hover svg, #theme-toggle:hover svg { fill: var(--primary); }
 #theme-toggle .sun { display: none; }
 .light-mode #theme-toggle .moon { display: none; }
 .light-mode #theme-toggle .sun { display: block; }
-
 .main-container { text-align: center; }
 .header { margin-bottom: 40px; }
 .header h1 { font-family: 'Roboto Mono', monospace; font-size: 3.5rem; color: var(--text-primary); }
 .header p { color: var(--text-secondary); }
-
-.card {
-    width: 400px; max-width: 90vw;
-    padding: 30px;
-    border-radius: 20px;
-    background-color: var(--surface);
-    border: 1px solid var(--shadow-light);
-    box-shadow: -10px -10px 20px var(--shadow-light), 10px 10px 20px var(--shadow-dark);
-}
-
+.card { width: 400px; max-width: 90vw; padding: 30px; border-radius: 20px; background-color: var(--surface); border: 1px solid var(--shadow-light); box-shadow: -10px -10px 20px var(--shadow-light), 10px 10px 20px var(--shadow-dark); }
 .stats-display { margin-bottom: 25px; }
-.stats-display .counter-value {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 3.5rem;
-    font-weight: 700;
-    color: var(--primary);
-    transition: color 0.3s;
-}
+.stats-display .counter-value { font-family: 'Roboto Mono', monospace; font-size: 3.5rem; font-weight: 700; color: var(--primary); transition: color 0.3s; }
 .stats-display label { font-size: 1rem; color: var(--text-secondary); }
-
-#email-display {
-    min-height: 60px;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 25px;
-    cursor: pointer;
-    box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
-    display: flex; justify-content: center; align-items: center;
-    transition: all 0.3s;
-    word-break: break-all;
-}
-#email-display.popped {
-    transform: scale(1.05);
-    box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark);
-}
-#email-text { opacity: 0.7; }
-
-#copy-feedback {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%) translateY(50px);
-    background: linear-gradient(145deg, var(--primary), var(--secondary));
-    color: white;
-    padding: 10px 20px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4);
-    opacity: 0;
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    pointer-events: none;
-}
-#copy-feedback.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-}
-
-#request-btn, #upload-btn {
-    width: 100%;
-    padding: 18px 0;
-    border: none;
-    border-radius: 12px;
-    background-color: var(--surface);
-    border: 1px solid var(--shadow-light);
-    box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark);
-    color: var(--text-primary);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.2s ease-in-out;
-}
-#request-btn:active, #upload-btn:active {
-    box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
-    transform: scale(0.98);
-    color: var(--primary);
-}
+#request-btn, #upload-btn { width: 100%; padding: 18px 0; border: none; border-radius: 12px; background-color: var(--surface); border: 1px solid var(--shadow-light); box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark); color: var(--text-primary); font-size: 1rem; font-weight: 600; cursor: pointer; position: relative; overflow: hidden; transition: all 0.2s ease-in-out; }
+#request-btn:active, #upload-btn:active { box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); transform: scale(0.98); color: var(--primary); }
 #request-btn:disabled { cursor: not-allowed; opacity: 0.6; }
 .btn-text { position: relative; z-index: 2; transition: color 0.4s; }
-.btn-bg {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(145deg, var(--primary), var(--secondary));
-    z-index: 1;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1);
-}
+.btn-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(145deg, var(--primary), var(--secondary)); z-index: 1; transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1); }
 #request-btn:hover .btn-bg, #upload-btn:hover .btn-bg { transform: scaleX(1); }
 #request-btn:hover .btn-text, #upload-btn:hover .btn-text { color: white; }
-
-#system-message { min-height: 20px; margin-top: 20px; color: var(--text-secondary); }
-
-/* Admin Page Specific */
-textarea, input[type="password"] {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    background-color: var(--surface);
-    box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
-    color: var(--text-primary); font-family: 'Poppins';
-}
-textarea { min-height: 150px; resize: vertical; }
-
-.back-link { display: block; margin-top: 20px; color: var(--primary); text-decoration: none; }
-
-
-
-
-/* Add this to the end of your style.css file */
-
-.secondary-card {
-    margin-top: 30px;
-    padding: 20px;
-}
-
-.personal-stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    text-align: center;
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--shadow-dark);
-}
-
-.personal-stats-grid div label {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    display: block;
-    margin-bottom: 5px;
-}
-
-.personal-stats-grid div span {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-.history-container {
-    text-align: left;
-}
-
-.history-container label {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-left: 10px;
-    text-transform: uppercase;
-    font-weight: 600;
-}
-
-#history-list {
-    list-style: none;
-    max-height: 150px;
-    overflow-y: auto;
-    margin-top: 10px;
-    padding-right: 10px; /* For scrollbar spacing */
-}
-
-#history-list li {
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    font-family: 'Roboto Mono', monospace;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
-    opacity: 0.8;
-}
-
-#history-list li:hover {
-    background-color: var(--primary);
-    color: var(--bg);
-    opacity: 1;
-    transform: translateX(5px);
-}
-
-.history-placeholder {
-    text-align: center;
-    opacity: 0.5 !important;
-    cursor: default !important;
-}
-
-/* Custom Scrollbar for history */
-#history-list::-webkit-scrollbar {
-    width: 8px;
-}
-#history-list::-webkit-scrollbar-track {
-    background: transparent;
-}
-#history-list::-webkit-scrollbar-thumb {
-    background-color: var(--primary);
-    border-radius: 10px;
-    border: 3px solid var(--surface);
-}
-
-/* Add this to the end of your style.css file */
-
-/* --- FLIP ANIMATION STYLES --- */
-
-.flip-container {
-    perspective: 1000px; /* This gives the 3D effect */
-    margin-bottom: 25px;
-}
-
-#email-display {
-    position: relative;
-    width: 100%;
-    min-height: 60px;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-    box-shadow: none; /* We remove the shadow from the main container as it's now a wrapper */
-    background-color: transparent; /* Wrapper is now transparent */
-    border: none;
-    padding: 0;
-    cursor: default; /* Remove cursor from the wrapper */
-}
-
-/* The class that triggers the flip */
-#email-display.flipped {
-    transform: rotateY(180deg);
-}
-
-.flipper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-.front, .back {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    -webkit-backface-visibility: hidden; /* For Safari */
-    backface-visibility: hidden;
-    
-    /* Re-apply the card styles to the front and back faces */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 15px;
-    border-radius: 12px;
-    background-color: var(--surface);
-    box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
-    word-break: break-all;
-    cursor: pointer; /* Add cursor back to the faces */
-    transition: box-shadow 0.3s;
-}
-
-.front:hover, .back:hover {
-    box-shadow: inset -5px -5px 10px var(--shadow-light), inset 5px 5px 10px var(--shadow-dark);
-}
-
-.back {
-    transform: rotateY(180deg);
-}
-
-/* Override the old loading state to work with the new structure */
-#email-display.loading .front,
-#email-display.loading .back {
-    cursor: wait;
-    opacity: 0.7;
-}
-
-#email-display.loading .front #email-text-front::after {
-    content: '...';
-    display: inline-block;
-    animation: dots 1.4s infinite;
-}
-
-@keyframes dots {
-    0%, 20% { content: '.'; }
-    40% { content: '..'; }
-    60%, 100% { content: '...'; }
-}
-
-/* Add this to the end of your style.css file */
-
-/* --- TOAST NOTIFICATION STYLES --- */
-
-#notification-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999; /* Should be on top of everything */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.toast-notification {
-    width: 320px;
-    padding: 15px 20px;
-    border-radius: 10px;
-    background-color: var(--surface);
-    color: var(--text-primary);
-    box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark);
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    opacity: 0;
-    transform: translateX(100%);
-    animation: slideIn 0.5s forwards, slideOut 0.5s 4s forwards; /* Stays for 4s */
-    position: relative;
-    overflow: hidden;
-    border-left: 5px solid;
-}
-
-.toast-notification .icon {
-    font-size: 1.5rem;
-}
-
-.toast-notification .message {
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-/* Notification Types (Colors) */
-.toast-notification.success {
-    border-left-color: #2ecc71; /* Green */
-}
-.toast-notification.success .icon {
-    color: #2ecc71;
-}
-
-.toast-notification.info {
-    border-left-color: var(--primary); /* Blue */
-}
-.toast-notification.info .icon {
-    color: var(--primary);
-}
-
-.toast-notification.error {
-    border-left-color: #e74c3c; /* Red */
-}
-.toast-notification.error .icon {
-    color: #e74c3c;
-}
-
-/* Animations */
-@keyframes slideIn {
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes slideOut {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(120%);
-    }
-}
+.secondary-card { margin-top: 30px; padding: 20px; }
+.personal-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--shadow-dark); }
+.personal-stats-grid div label { font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 5px; }
+.personal-stats-grid div span { font-family: 'Roboto Mono', monospace; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+.history-container { text-align: left; }
+.history-container label { font-size: 0.8rem; color: var(--text-secondary); margin-left: 10px; text-transform: uppercase; font-weight: 600; }
+#history-list { list-style: none; max-height: 150px; overflow-y: auto; margin-top: 10px; padding-right: 10px; }
+#history-list li { background-color: rgba(0, 0, 0, 0.2); padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; font-family: 'Roboto Mono', monospace; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s, transform 0.2s; opacity: 0.8; }
+#history-list li:hover { background-color: var(--primary); color: var(--bg); opacity: 1; transform: translateX(5px); }
+.history-placeholder { text-align: center; opacity: 0.5 !important; cursor: default !important; }
+#history-list::-webkit-scrollbar { width: 8px; }
+#history-list::-webkit-scrollbar-track { background: transparent; }
+#history-list::-webkit-scrollbar-thumb { background-color: var(--primary); border-radius: 10px; border: 3px solid var(--surface); }
+.flip-container { perspective: 1000px; margin-bottom: 25px; }
+#email-display { position: relative; width: 100%; min-height: 60px; transition: transform 0.6s; transform-style: preserve-3d; background-color: transparent; border: none; padding: 0; }
+#email-display.flipped { transform: rotateY(180deg); }
+.flipper { position: relative; width: 100%; height: 100%; }
+.front, .back { position: absolute; top: 0; left: 0; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; padding: 15px; border-radius: 12px; background-color: var(--surface); box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); word-break: break-all; transition: box-shadow 0.3s; }
+.copyable:hover { box-shadow: inset -5px -5px 10px var(--shadow-light), inset 5px 5px 10px var(--shadow-dark); }
+.back { transform: rotateY(180deg); }
+#notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast-notification { width: 320px; padding: 15px 20px; border-radius: 10px; background-color: var(--surface); color: var(--text-primary); box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark); display: flex; align-items: center; gap: 15px; opacity: 0; transform: translateX(100%); animation: slideIn 0.5s forwards, slideOut 0.5s 4s forwards; position: relative; overflow: hidden; border-left: 5px solid; }
+.toast-notification .icon { font-size: 1.5rem; }
+.toast-notification .message { font-size: 0.9rem; font-weight: 500; }
+.toast-notification.success { border-left-color: #2ecc71; }
+.toast-notification.success .icon { color: #2ecc71; }
+.toast-notification.info { border-left-color: var(--primary); }
+.toast-notification.info .icon { color: var(--primary); }
+.toast-notification.error { border-left-color: #e74c3c; }
+.toast-notification.error .icon { color: #e74c3c; }
+@keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+@keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(120%); } }
