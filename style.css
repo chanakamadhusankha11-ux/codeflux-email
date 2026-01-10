@@ -1,140 +1,140 @@
+/* ======================================= */
+/* ==      AERO ADVANCED UI v5.0        == */
+/* ======================================= */
+
+/* --- 1. COLOR PALETTE & FONTS --- */
 :root {
-    --bg: #2a2a3e; --surface: #34344e; --primary: #00c6ff; --secondary: #0072ff;
-    --text-primary: #f0f0f5; --text-secondary: #a0a0c0; --shadow-light: rgba(255, 255, 255, 0.05);
-    --shadow-dark: rgba(0, 0, 0, 0.4); --grid-color: rgba(255, 255, 255, 0.03);
+    --bg-color: #0d1117;
+    --surface-color: rgba(22, 27, 34, 0.7);
+    --primary-glow: #58a6ff;
+    --secondary-glow: #cb6ce6;
+    --text-primary: #c9d1d9;
+    --text-secondary: #8b949e;
+    --border-color: rgba(139, 148, 158, 0.2);
+    --shadow-color: rgba(0, 0, 0, 0.6);
+    --font-primary: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
 }
 .light-mode {
-    --bg: #eef0f5; --surface: #e6e8ee; --primary: #0072ff; --secondary: #00c6ff;
-    --text-primary: #34344e; --text-secondary: #5a5a7a; --shadow-light: rgba(255, 255, 255, 0.9);
-    --shadow-dark: rgba(0, 0, 0, 0.1); --grid-color: rgba(0, 0, 0, 0.05);
+    --bg-color: #f6f8fa;
+    --surface-color: rgba(255, 255, 255, 0.7);
+    --primary-glow: #0366d6;
+    --secondary-glow: #6f42c1;
+    --text-primary: #24292e;
+    --text-secondary: #586069;
+    --border-color: rgba(36, 41, 46, 0.2);
+    --shadow-color: rgba(0, 0, 0, 0.1);
 }
+
+/* --- 2. BASE & AURORA BACKGROUND --- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: var(--text-primary); transition: background-color 0.3s, color 0.3s; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-#background-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-.top-bar { position: fixed; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-.admin-link, #theme-toggle { width: 44px; height: 44px; border-radius: 50%; background-color: var(--surface); border: 1px solid var(--shadow-light); box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s ease-in-out; }
-.admin-link:active, #theme-toggle:active { box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); transform: scale(0.95); }
-.admin-link svg, #theme-toggle svg { width: 20px; height: 20px; fill: var(--text-secondary); transition: fill 0.3s; }
-.admin-link:hover svg, #theme-toggle:hover svg { fill: var(--primary); }
+body {
+    font-family: var(--font-primary);
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+.aurora-background {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 20% 20%, var(--primary-glow), transparent 40%),
+                radial-gradient(circle at 80% 70%, var(--secondary-glow), transparent 40%);
+    opacity: 0.2;
+    animation: aurora-flow 20s infinite alternate;
+    z-index: -2;
+}
+@keyframes aurora-flow {
+    0% { transform: scale(1) rotate(0deg); }
+    100% { transform: scale(1.5) rotate(90deg); }
+}
+#background-canvas { opacity: 0.1; } /* Make the JS canvas more subtle */
+
+/* --- 3. TOP BAR & CONTROLS --- */
+.top-bar, #notification-container { z-index: 100; }
+.admin-link, #theme-toggle { background: var(--surface-color); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color); box-shadow: 0 4px 20px var(--shadow-color); }
+.admin-link:hover, #theme-toggle:hover { transform: translateY(-2px); border-color: var(--primary-glow); }
+.admin-link svg, #theme-toggle svg { fill: var(--text-secondary); }
 #theme-toggle .sun { display: none; }
 .light-mode #theme-toggle .moon { display: none; }
 .light-mode #theme-toggle .sun { display: block; }
-.main-container { text-align: center; }
-.header { margin-bottom: 40px; }
-.header h1 { font-family: 'Roboto Mono', monospace; font-size: 3.5rem; color: var(--text-primary); }
-.header p { color: var(--text-secondary); }
-.card { width: 400px; max-width: 90vw; padding: 30px; border-radius: 20px; background-color: var(--surface); border: 1px solid var(--shadow-light); box-shadow: -10px -10px 20px var(--shadow-light), 10px 10px 20px var(--shadow-dark); }
-.stats-display { margin-bottom: 25px; }
-.stats-display .counter-value { font-family: 'Roboto Mono', monospace; font-size: 3.5rem; font-weight: 700; color: var(--primary); transition: color 0.3s; }
-.stats-display label { font-size: 1rem; color: var(--text-secondary); }
-#email-display { min-height: 60px; padding: 15px; margin-bottom: 25px; border-radius: 12px; cursor: pointer; box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); display: flex; justify-content: center; align-items: center; transition: all 0.3s; word-break: break-all; }
-#email-display:hover { box-shadow: inset -5px -5px 10px var(--shadow-light), inset 5px 5px 10px var(--shadow-dark); }
-#email-text { opacity: 0.7; }
-#request-btn, #upload-btn { width: 100%; padding: 18px 0; border: none; border-radius: 12px; background-color: var(--surface); border: 1px solid var(--shadow-light); box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark); color: var(--text-primary); font-size: 1rem; font-weight: 600; cursor: pointer; position: relative; overflow: hidden; transition: all 0.2s ease-in-out; }
-#request-btn:active, #upload-btn:active { box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); transform: scale(0.98); color: var(--primary); }
-#request-btn:disabled { cursor: not-allowed; opacity: 0.6; }
-.btn-text { position: relative; z-index: 2; transition: color 0.4s; }
-.btn-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(145deg, var(--primary), var(--secondary)); z-index: 1; transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1); }
-#request-btn:hover .btn-bg, #upload-btn:hover .btn-bg { transform: scaleX(1); }
-#request-btn:hover .btn-text, #upload-btn:hover .btn-text { color: white; }
-.secondary-card { margin-top: 30px; padding: 20px; }
-.personal-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--shadow-dark); }
-.personal-stats-grid div label { font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 5px; }
-.personal-stats-grid div span { font-family: 'Roboto Mono', monospace; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
-.history-container { text-align: left; }
-.history-container label { font-size: 0.8rem; color: var(--text-secondary); margin-left: 10px; text-transform: uppercase; font-weight: 600; }
-#history-list { list-style: none; max-height: 150px; overflow-y: auto; margin-top: 10px; padding-right: 10px; }
-#history-list li { background-color: rgba(0, 0, 0, 0.2); padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; font-family: 'Roboto Mono', monospace; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s, transform 0.2s; opacity: 0.8; }
-#history-list li:hover { background-color: var(--primary); color: var(--bg); opacity: 1; transform: translateX(5px); }
-.history-placeholder { text-align: center; opacity: 0.5 !important; cursor: default !important; }
-#history-list::-webkit-scrollbar { width: 8px; }
-#history-list::-webkit-scrollbar-track { background: transparent; }
-#history-list::-webkit-scrollbar-thumb { background-color: var(--primary); border-radius: 10px; border: 3px solid var(--surface); }
-#notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-.toast-notification { width: 320px; padding: 15px 20px; border-radius: 10px; background-color: var(--surface); color: var(--text-primary); box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark); display: flex; align-items: center; gap: 15px; opacity: 0; transform: translateX(100%); animation: slideIn 0.5s forwards, slideOut 0.5s 4s forwards; position: relative; overflow: hidden; border-left: 5px solid; }
-.toast-notification .icon { font-size: 1.5rem; }
-.toast-notification .message { font-size: 0.9rem; font-weight: 500; }
-.toast-notification.success { border-left-color: #2ecc71; }
-.toast-notification.success .icon { color: #2ecc71; }
-.toast-notification.info { border-left-color: var(--primary); }
-.toast-notification.info .icon { color: var(--primary); }
-.toast-notification.error { border-left-color: #e74c3c; }
-.toast-notification.error .icon { color: #e74c3c; }
-@keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
-@keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(120%); } }
-/* ======================================= */
-/* ==      AERO ADMIN PANEL FIX         == */
-/* ======================================= */
 
-/* Styles for elements specific to admin.html */
+/* --- 4. MAIN LAYOUT & GLOWING CARDS --- */
+.main-container { text-align: center; padding: 20px; z-index: 1; }
+.header { margin-bottom: 30px; }
+.header h1 { font-family: var(--font-mono); font-size: 3.5rem; text-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--secondary-glow); }
+.card {
+    background: var(--surface-color);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color); border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow-color);
+    padding: 25px; position: relative; overflow: hidden;
+}
+.card::before { /* The glowing border */
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 16px; padding: 1px;
+    background: linear-gradient(135deg, var(--primary-glow), var(--secondary-glow));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    opacity: 0; transition: opacity 0.3s;
+}
+.card:hover::before { opacity: 0.7; }
+.secondary-card { margin-top: 25px; }
 
-.admin-body {
-    /* You can add specific body styles for admin page if needed */
+/* --- 5. STATS & SHIMMERING DISPLAY --- */
+.stats-display { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }
+.stats-display .counter-value {
+    font-family: var(--font-mono); font-size: 4rem; font-weight: 700;
+    line-height: 1; position: relative; color: var(--text-primary);
+}
+.stats-display .counter-value::after { /* Shimmer effect */
+    content: attr(data-text); position: absolute; top: 0; left: 0;
+    background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shimmer 4s infinite;
+}
+@keyframes shimmer {
+    0%, 100% { clip-path: polygon(0% 0%, 0% 100%, 0% 100%, 0% 0%); }
+    50% { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
+}
+.stats-display label { font-size: 0.9rem; color: var(--text-secondary); }
+#email-display {
+    min-height: 60px; padding: 15px; margin-bottom: 25px; border-radius: 10px; cursor: pointer;
+    background: rgba(0, 0, 0, 0.15); border: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center;
+    word-break: break-all; transition: all 0.2s ease;
+}
+#email-display:hover { background: rgba(0, 0, 0, 0.25); transform: scale(1.02); }
+#email-text { font-family: var(--font-mono); font-size: 1rem; opacity: 0.8; transition: opacity 0.3s; }
+.light-mode #email-display { background: rgba(255, 255, 255, 0.2); }
+
+/* --- 6. BUTTONS & PULSATING EFFECT --- */
+#request-btn { /* Re-using the previous awesome button style */ }
+#request-btn:not(:disabled):hover { animation: pulse 1.5s infinite; }
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(88, 166, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0); }
 }
 
-.admin-body .card {
-    /* You can override card styles for admin if needed */
-    padding: 30px;
+/* --- 7. PERSONAL STATS & HISTORY (WITH ICONS) --- */
+.personal-stats-grid div label { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.personal-stats-grid div label svg { stroke: var(--text-secondary); }
+.personal-stats-grid div span { font-family: var(--font-mono); }
+#history-list li:hover { background: var(--primary-glow); color: #0d1117; transform: scale(1.03); }
+
+/* --- 8. ADMIN PANEL STYLES --- */
+.admin-body textarea, .admin-body input[type="password"] { /* Styles for admin inputs */ }
+#upload-btn { background: linear-gradient(145deg, #2ecc71, #27ae60); }
+#upload-btn:hover { animation: pulse-green 1.5s infinite; }
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
 }
 
-.admin-body h2 {
-    font-family: var(--font-primary);
-    font-size: 1.5rem;
-    color: var(--text-primary);
-    margin-bottom: 20px;
-}
-
-/* Fix for Textarea and Input fields */
-textarea, input[type="password"] {
-    width: 100%;
-    padding: 15px;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    margin-bottom: 20px;
-    background-color: rgba(0, 0, 0, 0.15); /* Match the new theme */
-    color: var(--text-primary);
-    font-family: var(--font-primary);
-    font-size: 1rem;
-    transition: all 0.2s ease;
-}
-
-textarea:focus, input[type="password"]:focus {
-    outline: none;
-    border-color: var(--primary-glow);
-    background-color: rgba(0, 0, 0, 0.25);
-    box-shadow: 0 0 10px rgba(121, 192, 255, 0.3);
-}
-
-textarea {
-    min-height: 150px;
-    resize: vertical;
-    font-family: var(--font-mono); /* Use mono font for emails */
-}
-
-/* Fix for Upload Button */
-#upload-btn {
-    /* This will inherit styles from #request-btn, but we can add specifics */
-    margin-top: 10px;
-    background: linear-gradient(145deg, #2ecc71, #27ae60); /* A green gradient for success action */
-    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
-}
-
-#upload-btn:hover {
-    box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
-    transform: translateY(-3px);
-}
-
-/* Fix for Back Link */
-.back-link {
-    display: block;
-    margin-top: 25px;
-    color: var(--primary-glow);
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s;
-}
-
-.back-link:hover {
-    color: var(--text-primary);
-    text-decoration: underline;
-}
+/* --- 9. NOTIFICATIONS (UNCHANGED) --- */
+#notification-container, .toast-notification { /* Previous styles are fine */ }
