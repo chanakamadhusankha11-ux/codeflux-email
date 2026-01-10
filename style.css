@@ -12,7 +12,6 @@
     --text-secondary: #a0a0c0;
     --shadow-light: rgba(255, 255, 255, 0.05);
     --shadow-dark: rgba(0, 0, 0, 0.4);
-    --grid-color: rgba(255, 255, 255, 0.03); /* Kept for canvas */
     --font-primary: 'Poppins', sans-serif;
     --font-mono: 'Roboto Mono', monospace;
 }
@@ -25,7 +24,6 @@
     --text-secondary: #5a5a7a;
     --shadow-light: rgba(255, 255, 255, 0.9);
     --shadow-dark: rgba(0, 0, 0, 0.1);
-    --grid-color: rgba(0, 0, 0, 0.05);
 }
 
 /* --- 2. BASE & BACKGROUND --- */
@@ -37,7 +35,6 @@ body {
     min-height: 100vh;
     overflow: hidden;
     position: relative;
-    /* Removed display:flex to fix the layout issue for good. */
 }
 #background-canvas {
     position: fixed;
@@ -46,98 +43,42 @@ body {
 }
 
 /* --- 3. TOP BAR & NOTIFICATIONS --- */
-.top-bar, #notification-container {
-    position: fixed;
-    z-index: 100;
-}
+.top-bar, #notification-container { position: fixed; z-index: 100; }
 .top-bar { top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; }
-#notification-container { top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; }
+.admin-link, #theme-toggle { width: 44px; height: 44px; border-radius: 50%; background-color: var(--surface); border: 1px solid var(--shadow-light); box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s ease-in-out; }
+.admin-link:active, #theme-toggle:active { box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); transform: scale(0.95); }
+.admin-link svg, #theme-toggle svg { stroke: var(--text-secondary); fill: none; }
+.admin-link:hover svg, #theme-toggle:hover svg { stroke: var(--primary); }
+#theme-toggle .sun { display: none; }
+.light-mode #theme-toggle .moon { display: none; }
+.light-mode #theme-toggle .sun { display: block; }
 
 /* --- 4. MAIN LAYOUT (THE DEFINITIVE FIX) --- */
 .main-container {
-    text-align: center;
-    padding: 20px;
-    z-index: 1;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90vw;
-    max-width: 450px; /* Adjust this for your preferred max card width */
+    text-align: center; padding: 20px; z-index: 1; position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 90vw; max-width: 450px;
 }
 
-/* --- 5. THE "QUALITY" NEUMORPHIC CARD STYLES --- */
+/* --- 5. "QUALITY" NEUMORPHIC STYLES --- */
 .header { margin-bottom: 40px; }
 .header h1 { font-family: var(--font-mono); font-size: 3.5rem; color: var(--text-primary); }
 .header p { color: var(--text-secondary); }
-
-.card {
-    width: 100%;
-    padding: 30px;
-    border-radius: 20px;
-    background-color: var(--surface);
-    border: 1px solid var(--shadow-light);
-    box-shadow: -10px -10px 20px var(--shadow-light), 10px 10px 20px var(--shadow-dark);
-}
+.card { width: 100%; padding: 30px; border-radius: 20px; background-color: var(--surface); border: 1px solid var(--shadow-light); box-shadow: -10px -10px 20px var(--shadow-light), 10px 10px 20px var(--shadow-dark); }
 .secondary-card { margin-top: 30px; padding: 20px; }
-
 .stats-display { margin-bottom: 25px; }
-.stats-display .counter-value {
-    font-family: var(--font-mono);
-    font-size: 3.5rem;
-    font-weight: 700;
-    color: var(--primary);
-}
+.stats-display .counter-value { font-family: var(--font-mono); font-size: 3.5rem; font-weight: 700; color: var(--primary); }
 .stats-display label { font-size: 1rem; color: var(--text-secondary); }
-
-#email-display {
-    min-height: 60px;
-    padding: 15px;
-    margin-bottom: 25px;
-    border-radius: 12px;
-    cursor: pointer;
-    box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
-    display: flex; justify-content: center; align-items: center;
-    transition: all 0.3s;
-    word-break: break-all;
-}
-#email-display:hover {
-    box-shadow: inset -5px -5px 10px var(--shadow-light), inset 5px 5px 10px var(--shadow-dark);
-}
+#email-display { min-height: 60px; padding: 15px; margin-bottom: 25px; border-radius: 12px; cursor: pointer; box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); display: flex; justify-content: center; align-items: center; transition: all 0.3s; word-break: break-all; }
+#email-display:hover { box-shadow: inset -5px -5px 10px var(--shadow-light), inset 5px 5px 10px var(--shadow-dark); }
 #email-text { font-family: var(--font-mono); opacity: 0.8; }
+#request-btn, #upload-btn { width: 100%; padding: 18px 0; border: none; border-radius: 12px; background-color: var(--surface); border: 1px solid var(--shadow-light); box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark); color: var(--text-primary); font-size: 1rem; font-weight: 600; cursor: pointer; position: relative; transition: all 0.2s ease-in-out; }
+#request-btn:hover, #upload-btn:hover { transform: translateY(-2px); }
+#request-btn:active, #upload-btn:active { box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); transform: translateY(0); color: var(--primary); }
+#request-btn:disabled { cursor: not-allowed; opacity: 0.6; transform: none; box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); }
+.btn-text, .btn-bg { /* Kept for JS compatibility */ }
 
-#request-btn, #upload-btn {
-    width: 100%;
-    padding: 18px 0;
-    border: none;
-    border-radius: 12px;
-    background-color: var(--surface);
-    border: 1px solid var(--shadow-light);
-    box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark);
-    color: var(--text-primary);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.2s ease-in-out;
-}
-#request-btn:hover, #upload-btn:hover {
-    transform: translateY(-2px);
-}
-#request-btn:active, #upload-btn:active {
-    box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
-    transform: translateY(0);
-    color: var(--primary);
-}
-#request-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-    transform: none;
-    box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
-}
-.btn-text, .btn-bg { /* Kept for JS compatibility, but not visually used in this version */ }
-
-/* --- 6. PERSONAL STATS, HISTORY, NOTIFICATIONS --- */
+/* --- 6. PERSONAL STATS, HISTORY --- */
 .personal-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--shadow-dark); }
 .personal-stats-grid div label { font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 8px; }
 .personal-stats-grid div label svg { stroke: var(--text-secondary); }
@@ -151,29 +92,24 @@ body {
 #history-list::-webkit-scrollbar-track { background: transparent; }
 #history-list::-webkit-scrollbar-thumb { background-color: var(--primary); border-radius: 10px; border: 3px solid var(--surface); }
 
-.toast-notification {
-    background-color: var(--surface);
-    box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark);
-    /* Other toast styles remain the same */
-}
+/* --- 7. QUALITY NOTIFICATIONS --- */
+#notification-container { right: 20px; display: flex; flex-direction: column; gap: 15px; pointer-events: none; }
+.toast-notification { width: 340px; max-width: 90vw; padding: 16px; border-radius: 12px; background: var(--surface-color); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--shadow-light); box-shadow: -8px -8px 16px var(--shadow-light), 8px 8px 16px var(--shadow-dark); display: flex; align-items: center; gap: 15px; animation: slideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards, slideOut 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) 4s forwards; pointer-events: all; position: relative; overflow: hidden; }
+.toast-notification::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--primary); }
+.toast-notification .icon { font-size: 1.5rem; flex-shrink: 0; }
+.toast-notification .message { font-size: 0.95rem; font-weight: 500; line-height: 1.4; color: var(--text-primary); }
+.toast-notification.success::before { background: #2ecc71; }
+.toast-notification.success .icon { color: #2ecc71; }
+.toast-notification.info::before { background: var(--primary); }
+.toast-notification.info .icon { color: var(--primary); }
+.toast-notification.error::before { background: #e74c3c; }
+.toast-notification.error .icon { color: #e74c3c; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(110%); margin-bottom: -10px; padding-top: 0; padding-bottom: 0; height: 0; border: 0; } }
 
-/* --- 7. ADMIN PANEL FIXES --- */
-textarea, input[type="password"] {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    background-color: var(--surface);
-    box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
-    color: var(--text-primary);
-    font-family: var(--font-primary);
-    font-size: 1rem;
-}
-textarea:focus, input[type="password"]:focus {
-    outline: none;
-    box-shadow: inset -5px -5px 10px var(--shadow-light), inset 5px 5px 10px var(--shadow-dark);
-}
+/* --- 8. ADMIN PANEL FIXES --- */
+textarea, input[type="password"] { width: 100%; padding: 15px; border: none; border-radius: 12px; margin-bottom: 20px; background-color: var(--surface); box-shadow: inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark); color: var(--text-primary); font-family: var(--font-primary); font-size: 1rem; }
+textarea:focus, input[type="password"]:focus { outline: none; box-shadow: inset -5px -5px 10px var(--shadow-light), inset 5px 5px 10px var(--shadow-dark); }
 textarea { min-height: 150px; resize: vertical; font-family: var(--font-mono); }
 #upload-btn { background: #2ecc71; color: white; }
 #upload-btn:hover { background: #27ae60; }
