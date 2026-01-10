@@ -13,21 +13,81 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     // =================================================================
 
+    // Initialize Firebase using the v8 compatibility library
     try {
         firebase.initializeApp(firebaseConfig);
     } catch (e) {
-        console.error("Firebase initialization failed.", e);
-        // Handle initialization error
-        return;
+        console.error("Firebase initialization failed. Please check your config and HTML script tags.", e);
+        const systemMessage = document.getElementById('system-message');
+        if(systemMessage) {
+            systemMessage.textContent = "FATAL ERROR: Could not connect to the database.";
+            systemMessage.style.color = '#ff4757';
+        }
+        return; // Stop execution if Firebase fails
     }
 
     const db = firebase.firestore();
-    const ADMIN_PASSCODE = "123456789";
+    const ADMIN_PASSCODE = "123456789"; // Your secret admin passcode
 
-    // Dynamic background, theme toggle, etc. (No changes here)
-    // ... (The previous code for background and theme toggle goes here)
+    // --- Dynamic Background ---
+    const canvas = document.getElementById('background-canvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let width, height, grid;
+        const mouse = { x: 0, y: 0, radius: 60 };
+        const setup = () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            grid = [];
+            const cellSize = 20;
+            for (let y = 0; y < height + cellSize; y += cellSize) {
+                for (let x = 0; x < width + cellSize; x += cellSize) {
+                    grid.push({ x, y });
+                }
+            }
+        };
+        const draw = () => {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, width, height);
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-color').trim();
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            grid.forEach(point => {
+                const dist = Math.hypot(point.x - mouse.x, point.y - mouse.y);
+                const size = Math.max(0.5, 2 - dist / 150);
+                if (dist < mouse.radius) {
+                    ctx.fillStyle = primaryColor;
+                    ctx.globalAlpha = Math.max(0, 0.8 - dist / mouse.radius);
+                } else {
+                    ctx.fillStyle = gridColor;
+                    ctx.globalAlpha = 0.5;
+                }
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            requestAnimationFrame(draw);
+        };
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('resize', setup);
+        setup();
+        draw();
+    }
 
-    // --- Main Logic ---
+    // --- Theme Toggle ---
+    const themeToggle = document.getElementById('theme-toggle');
+    if(themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('light-mode');
+            localStorage.setItem('theme', document.documentElement.classList.contains('light-mode') ? 'light' : 'dark');
+        });
+    }
+    if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.add('light-mode');
+    }
+
+    // --- Main Logic Router ---
     if (document.getElementById('request-btn')) {
         handleUserPage(db);
     } else if (document.getElementById('upload-btn')) {
@@ -36,30 +96,33 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =================================================
-// == USER PAGE LOGIC (WITH THE NEW FIX)
+// == USER PAGE LOGIC (WITH ALL FIXES)
 // =================================================
 function handleUserPage(db) {
     const statsCountEl = document.getElementById('stats-count');
     const requestBtn = document.getElementById('request-btn');
     const emailTextEl = document.getElementById('email-text');
-    // ... other element variables
+    const emailDisplayEl = document.getElementById('email-display');
+    const copyFeedbackEl = document.getElementById('copy-feedback');
+    const systemMessageEl = document.getElementById('system-message');
+    let audioUnlocked = false;
 
-    // Real-time listener for stats (No change here)
+    // Real-time listener for stats
     db.collection('emails').where('status', '==', 0).onSnapshot(snapshot => {
         statsCountEl.textContent = snapshot.size;
-        // ... counter animation logic ...
+    }, error => {
+        console.error("Firestore listener error:", error);
+        systemMessageEl.textContent = "Error connecting to database.";
     });
 
     requestBtn.addEventListener('click', async () => {
-        // ... audio unlock logic ...
+        if (!audioUnlocked) { audioUnlocked = true; }
 
         requestBtn.disabled = true;
         requestBtn.querySelector('.btn-text').textContent = 'REQUESTING...';
         
         try {
-            // ===============================================================
-            // == THE NEW, SIMPLER APPROACH (NO TRANSACTION) - THIS IS THE FIX ==
-            // ===============================================================
+            // Using the simpler, non-transactional approach to avoid SDK conflicts
             const query = db.collection('emails').where('status', '==', 0).limit(1);
             const snapshot = await query.get();
 
@@ -70,18 +133,22 @@ function handleUserPage(db) {
             const emailDoc = snapshot.docs[0];
             const emailAddress = emailDoc.data().address;
             
-            // Now, update the found document directly by its ID
+            // Update the specific document by its ID
             await db.collection('emails').doc(emailDoc.id).update({
                 status: 1,
                 used_at: new Date()
             });
-            // ===============================================================
 
-            // Display logic (No changes here)
-            // ... (code to show the email on screen) ...
-            emailTextEl.textContent = emailAddress;
+            // Display logic
+            emailDisplayEl.classList.remove('popped');
+            setTimeout(() => {
+                emailTextEl.textContent = emailAddress;
+                emailTextEl.style.opacity = '1';
+                emailDisplayEl.classList.add('popped');
+            }, 100);
+
             systemMessageEl.textContent = '✅ Email received! Click to copy.';
-            // ...
+            systemMessageEl.style.color = 'var(--primary)';
 
         } catch (error) {
             systemMessageEl.textContent = `❌ ${error.message}`;
@@ -92,12 +159,77 @@ function handleUserPage(db) {
         }
     });
 
-    // ... email copy logic ...
+    // CLICK-TO-COPY LOGIC
+    emailDisplayEl.addEventListener('click', () => {
+        const email = emailTextEl.textContent;
+
+        if (email && email.includes('@')) {
+            navigator.clipboard.writeText(email).then(() => {
+                if (copyFeedbackEl) {
+                    copyFeedbackEl.classList.add('show');
+                    setTimeout(() => {
+                        copyFeedbackEl.classList.remove('show');
+                    }, 1500);
+                }
+            }).catch(err => {
+                console.error('Failed to copy email: ', err);
+                alert('Could not copy email automatically. Please copy it manually.');
+            });
+        }
+    });
 }
 
 // =================================================
-// == ADMIN PAGE LOGIC (No changes needed here)
+// == ADMIN PAGE LOGIC
 // =================================================
 function handleAdminPage(db, ADMIN_PASSCODE) {
-    // ... The same admin page logic as before ...
+    const uploadBtn = document.getElementById('upload-btn');
+    const emailInput = document.getElementById('email-input');
+    const passcode_input = document.getElementById('passcode-input');
+    const systemMessageEl = document.getElementById('system-message');
+
+    uploadBtn.addEventListener('click', async () => {
+        if (passcode_input.value !== ADMIN_PASSCODE) {
+            systemMessageEl.textContent = '❌ Invalid Passcode!';
+            systemMessageEl.style.color = '#ff4757';
+            return;
+        }
+
+        const text = emailInput.value;
+        const newEmails = [...new Set(text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi) || [])];
+        if (newEmails.length === 0) {
+            systemMessageEl.textContent = '⚠️ No valid emails found.';
+            return;
+        }
+
+        uploadBtn.disabled = true;
+        uploadBtn.querySelector('.btn-text').textContent = 'UPLOADING...';
+        systemMessageEl.textContent = `Uploading ${newEmails.length} emails...`;
+        
+        const chunks = [];
+        for (let i = 0; i < newEmails.length; i += 499) {
+            chunks.push(newEmails.slice(i, i + 499));
+        }
+
+        try {
+            for (const chunk of chunks) {
+                const batch = db.batch();
+                chunk.forEach(email => {
+                    const docRef = db.collection('emails').doc(email.toLowerCase());
+                    batch.set(docRef, { address: email.toLowerCase(), status: 0 }, { merge: true });
+                });
+                await batch.commit();
+            }
+            systemMessageEl.textContent = `✅ Successfully uploaded ${newEmails.length} emails!`;
+            systemMessageEl.style.color = 'var(--primary)';
+            emailInput.value = '';
+        } catch (error) {
+            console.error("Error uploading: ", error);
+            systemMessageEl.textContent = `❌ Upload Error: ${error.message}`;
+            systemMessageEl.style.color = '#ff4757';
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.querySelector('.btn-text').textContent = 'UPLOAD EMAILS';
+        }
+    });
 }
