@@ -51,9 +51,30 @@
         </section>
     </main>
 
+
+    <!-- ... Your other scripts ... -->
+    <script src="script.js"></script>
+
+    <!-- NEW: MODAL POPUP FOR COUNTDOWN -->
+    <div id="delay-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <h2>Processing Request</h2>
+            <p>Due to high traffic, we are securing your request.</p>
+            <p>Please wait <span id="countdown-timer">5</span> seconds...</p>
+        </div>
+    </div>
+
+
+
+
+
+    
+
     <!-- Scripts remain unchanged -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
+
