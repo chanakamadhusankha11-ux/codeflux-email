@@ -113,6 +113,5 @@ function handleUserPage(db, showNotification) {
 }
 
 function handleAdminPage(db, ADMIN_PASSCODE, showNotification) {
-    // This function is for the separate admin.html page and is not included here
-    // for simplicity, but the logic would be the same as previous versions.
+    // Admin page logic
 }
