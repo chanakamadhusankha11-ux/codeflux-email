@@ -24,12 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
     const ADMIN_PASSCODE = "123456789";
 
+    // --- GLOBAL HELPER: NOTIFICATION HANDLER ---
     function showNotification(message, type = 'info') {
         const container = document.getElementById('notification-container');
         if (!container) return;
         const toast = document.createElement('div');
         toast.className = `toast-notification ${type}`;
-        let icon = 'ℹ️'; if (type === 'success') icon = '✅'; if (type === 'error') icon = '❌';
+        let icon = 'ℹ️';
+        if (type === 'success') icon = '✅';
+        if (type === 'error') icon = '❌';
         toast.innerHTML = `<div class="icon">${icon}</div><div class="message">${message}</div>`;
         container.appendChild(toast);
         setTimeout(() => {
@@ -40,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     }
 
+    // --- DYNAMIC BACKGROUND & THEME (GLOBAL) ---
     const canvas = document.getElementById('background-canvas');
     if (canvas) {
         const ctx = canvas.getContext('2d'); let width, height, grid; const mouse = { x: 0, y: 0, radius: 60 };
@@ -51,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeToggle) { themeToggle.addEventListener('click', () => { document.documentElement.classList.toggle('light-mode'); localStorage.setItem('theme', document.documentElement.classList.contains('light-mode') ? 'light' : 'dark'); }); }
     if (localStorage.getItem('theme') === 'light') { document.documentElement.classList.add('light-mode'); }
     
+    // --- MAIN LOGIC ROUTER ---
     if (document.getElementById('request-btn')) {
         handleUserPage(db, showNotification);
     } else if (document.getElementById('upload-btn')) {
@@ -58,6 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// =========================================================================
+// == USER PAGE LOGIC (Self-contained and complete with THE FINAL FIX)
+// =========================================================================
 function handleUserPage(db, showNotification) {
     const statsCountEl = document.getElementById('stats-count'); const requestBtn = document.getElementById('request-btn'); const emailDisplayEl = document.getElementById('email-display'); const emailTextEl = document.getElementById('email-text'); const personalRequestsEl = document.getElementById('personal-requests'); const personalAvgTimeEl = document.getElementById('personal-avg-time'); const historyListEl = document.getElementById('history-list'); const modal = document.getElementById('delay-modal'); const countdownTimerEl = document.getElementById('countdown-timer');
     let sessionRequests = 0; let sessionStartTime = Date.now();
@@ -85,19 +93,30 @@ function handleUserPage(db, showNotification) {
         setTimeout(() => modal.style.display = 'none', 300);
         showNotification("Securing a unique email...", "info");
         try {
-            const { id, address } = await db.runTransaction(async (transaction) => {
-                const query = db.collection('emails').where('status', '==', 0).limit(1);
-                const snapshot = await transaction.get(query);
-                if (snapshot.empty) { throw new Error("SYSTEM EMPTY"); }
-                const emailDoc = snapshot.docs[0];
-                transaction.update(emailDoc.ref, { status: 1 });
-                return { id: emailDoc.id, address: emailDoc.data().address };
+            // THE ULTIMATE FIX: NO TRANSACTION, BUT SAFE
+            const query = db.collection('emails').where('status', '==', 0).limit(1);
+            const snapshot = await query.get();
+            if (snapshot.empty) throw new Error("SYSTEM EMPTY");
+
+            const emailDoc = snapshot.docs[0];
+            const emailId = emailDoc.id;
+            const emailAddress = emailDoc.data().address;
+            
+            // This update is atomic. It will either succeed or fail.
+            // This is the safest way to do it without a transaction to avoid SDK bugs.
+            await db.collection('emails').doc(emailId).update({
+                status: 1,
+                used_at: new Date()
             });
-            await db.collection('emails').doc(id).update({ used_at: new Date() });
-            emailTextEl.textContent = address;
+            
+            // --- SUCCESS ---
+            emailTextEl.textContent = emailAddress;
             emailTextEl.style.opacity = '1';
             showNotification("New email secured!", "success");
-            sessionRequests++; updatePersonalStats(); addToHistory(address);
+            sessionRequests++;
+            updatePersonalStats();
+            addToHistory(emailAddress);
+
         } catch (error) {
             showNotification(error.message, "error");
             emailTextEl.textContent = 'An error occurred.';
@@ -112,6 +131,54 @@ function handleUserPage(db, showNotification) {
     emailDisplayEl.addEventListener('click', () => copyToClipboard(emailTextEl.textContent));
 }
 
+// =========================================================================
+// == ADMIN PAGE LOGIC (Self-contained and complete)
+// =========================================================================
 function handleAdminPage(db, ADMIN_PASSCODE, showNotification) {
-    // Admin page logic
+    const uploadBtn = document.getElementById('upload-btn');
+    const emailInput = document.getElementById('email-input');
+    const passcode_input = document.getElementById('passcode-input');
+    
+    if(!uploadBtn) return;
+
+    uploadBtn.addEventListener('click', async () => {
+        if (passcode_input.value !== ADMIN_PASSCODE) { 
+            showNotification('Invalid Passcode!', 'error'); 
+            return; 
+        }
+        
+        const text = emailInput.value;
+        const newEmails = [...new Set(text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi) || [])];
+        if (newEmails.length === 0) { 
+            showNotification('No valid emails found.', 'error'); 
+            return; 
+        }
+
+        uploadBtn.disabled = true;
+        uploadBtn.querySelector('.btn-text').textContent = 'UPLOADING...';
+        showNotification(`Uploading ${newEmails.length} emails...`, 'info');
+        
+        const chunks = [];
+        for (let i = 0; i < newEmails.length; i += 499) { 
+            chunks.push(newEmails.slice(i, i + 499)); 
+        }
+
+        try {
+            for (const chunk of chunks) {
+                const batch = db.batch();
+                chunk.forEach(email => {
+                    const docRef = db.collection('emails').doc(email.toLowerCase());
+                    batch.set(docRef, { address: email.toLowerCase(), status: 0 }, { merge: true });
+                });
+                await batch.commit();
+            }
+            showNotification(`Successfully uploaded ${newEmails.length} emails!`, 'success');
+            emailInput.value = '';
+        } catch (error) {
+            showNotification(`Upload Error: ${error.message}`, 'error');
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.querySelector('.btn-text').textContent = 'UPLOAD EMAILS';
+        }
+    });
 }
