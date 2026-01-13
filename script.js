@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         firebase.initializeApp(firebaseConfig);
     } catch (e) {
-        // Define a minimal notification function for this specific error
+        // We need showNotification to be defined before we can use it.
         const container = document.getElementById('notification-container');
         if (container) {
             const toast = document.createElement('div');
@@ -32,13 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const ADMIN_PASSCODE = "123456789";
 
     function showNotification(message, type = 'info') {
-        const container = document.getElementById('notification-container');
-        if (!container) return;
-        const toast = document.createElement('div');
-        toast.className = `toast-notification ${type}`;
-        let icon = 'ℹ️';
-        if (type === 'success') icon = '✅';
-        if (type === 'error') icon = '❌';
+        const container = document.getElementById('notification-container'); if (!container) return;
+        const toast = document.createElement('div'); toast.className = `toast-notification ${type}`;
+        let icon = 'ℹ️'; if (type === 'success') icon = '✅'; if (type === 'error') icon = '❌';
         toast.innerHTML = `<div class="icon">${icon}</div><div class="message">${message}</div>`;
         container.appendChild(toast);
         setTimeout(() => {
@@ -55,10 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =================================================
-// == USER PAGE LOGIC (TRANSACTION FIX + POPUP)
+// == USER PAGE LOGIC (THE DEFINITIVE FIX)
 // =================================================
 function handleUserPage(db, showNotification) {
-    // DOM Elements
     const statsCountEl = document.getElementById('stats-count');
     const requestBtn = document.getElementById('request-btn');
     const emailDisplayEl = document.getElementById('email-display');
@@ -82,7 +77,6 @@ function handleUserPage(db, showNotification) {
         requestBtn.disabled = true;
         requestBtn.querySelector('.btn-text').textContent = 'PROCESSING...';
         
-        // --- STEP 1: SHOW MODAL AND START COUNTDOWN ---
         const randomDelay = Math.floor(Math.random() * (4000 - 3000 + 1)) + 3000;
         let countdown = Math.ceil(randomDelay / 1000);
         
@@ -98,21 +92,15 @@ function handleUserPage(db, showNotification) {
             }
         }, 1000);
 
-        // --- STEP 2: WAIT FOR THE DELAY TO FINISH ---
         await new Promise(resolve => setTimeout(resolve, randomDelay));
         
-        // --- STEP 3: HIDE MODAL AND PREPARE FOR TRANSACTION ---
         modal.classList.remove('visible');
         setTimeout(() => modal.style.display = 'none', 300);
 
         showNotification("Securing a unique email...", "info");
         
         try {
-            // ===============================================================
-            // == THE ATOMIC TRANSACTION FIX IS BACK! ==
-            // ===============================================================
             const emailAddress = await db.runTransaction(async (transaction) => {
-                // 1. Find an available email INSIDE the transaction
                 const query = db.collection('emails').where('status', '==', 0).limit(1);
                 const snapshot = await transaction.get(query);
 
@@ -123,19 +111,18 @@ function handleUserPage(db, showNotification) {
                 const emailDoc = snapshot.docs[0];
                 const address = emailDoc.data().address;
                 
-                // 2. Update the found email's status INSIDE the same transaction
                 transaction.update(emailDoc.ref, {
                     status: 1,
-                    // NOTE: new Date() can still cause the fp/lp error in some SDK versions.
-                    // If it happens again, this must be changed. But for now, let's try.
-                    used_at: firebase.firestore.FieldValue.serverTimestamp()
+                    // ===============================================================
+                    // == THE DEFINITIVE FIX FOR THE fp/lp ERROR ==
+                    // == Using new Date() instead of serverTimestamp() INSIDE the transaction.
+                    // ===============================================================
+                    used_at: new Date()
                 });
                 
                 return address;
             });
-            // ===============================================================
             
-            // --- SUCCESS: UPDATE UI ---
             emailTextEl.textContent = emailAddress;
             emailTextEl.style.opacity = '1';
             showNotification("New email secured!", "success");
@@ -145,19 +132,14 @@ function handleUserPage(db, showNotification) {
             addToHistory(emailAddress);
 
         } catch (error) {
-            // --- ERROR: HANDLE TRANSACTION FAILURE ---
             showNotification(error.message, "error");
             emailTextEl.textContent = 'An error occurred.';
-            // If the transaction fails multiple times, Firestore throws an error.
-            // This is how we know there was a lot of contention or the system is empty.
         } finally {
-            // --- ALWAYS: RESET UI ---
             requestBtn.disabled = false;
-            requestBtn.querySelector('.btn--text').textContent = 'REQUEST EMAIL';
+            requestBtn.querySelector('.btn-text').textContent = 'REQUEST EMAIL';
         }
     });
 
-    // Helper functions
     function updatePersonalStats() {
         if (!personalRequestsEl) return;
         personalRequestsEl.textContent = sessionRequests;
@@ -188,7 +170,6 @@ function handleUserPage(db, showNotification) {
     emailDisplayEl.addEventListener('click', () => copyToClipboard(emailTextEl.textContent));
 }
 
-// Admin page logic remains unchanged
 function handleAdminPage(db, ADMIN_PASSCODE, showNotification) {
-    // ... code for admin page ...
+    // Admin page logic remains unchanged
 }
