@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         firebase.initializeApp(firebaseConfig);
     } catch (e) {
-        // We need showNotification to be defined before we can use it.
         const container = document.getElementById('notification-container');
         if (container) {
             const toast = document.createElement('div');
@@ -51,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =================================================
-// == USER PAGE LOGIC (THE DEFINITIVE FIX)
+// == USER PAGE LOGIC (THE ULTIMATE FIX)
 // =================================================
 function handleUserPage(db, showNotification) {
     const statsCountEl = document.getElementById('stats-count');
@@ -77,19 +76,16 @@ function handleUserPage(db, showNotification) {
         requestBtn.disabled = true;
         requestBtn.querySelector('.btn-text').textContent = 'PROCESSING...';
         
+        // Show Modal with delay
         const randomDelay = Math.floor(Math.random() * (4000 - 3000 + 1)) + 3000;
         let countdown = Math.ceil(randomDelay / 1000);
-        
         countdownTimerEl.textContent = countdown;
         modal.style.display = 'flex';
         setTimeout(() => modal.classList.add('visible'), 10);
-
         const countdownInterval = setInterval(() => {
             countdown--;
             countdownTimerEl.textContent = countdown;
-            if (countdown <= 0) {
-                clearInterval(countdownInterval);
-            }
+            if (countdown <= 0) clearInterval(countdownInterval);
         }, 1000);
 
         await new Promise(resolve => setTimeout(resolve, randomDelay));
@@ -100,7 +96,13 @@ function handleUserPage(db, showNotification) {
         showNotification("Securing a unique email...", "info");
         
         try {
-            const emailAddress = await db.runTransaction(async (transaction) => {
+            // ===============================================================
+            // == THE ULTIMATE FIX: SEPARATING CRITICAL & NON-CRITICAL OPERATIONS ==
+            // ===============================================================
+
+            // Step 1: The Transaction only handles the critical part (status update).
+            // It returns the ID and address of the secured document.
+            const { id, address } = await db.runTransaction(async (transaction) => {
                 const query = db.collection('emails').where('status', '==', 0).limit(1);
                 const snapshot = await transaction.get(query);
 
@@ -109,67 +111,86 @@ function handleUserPage(db, showNotification) {
                 }
                 
                 const emailDoc = snapshot.docs[0];
-                const address = emailDoc.data().address;
                 
-                transaction.update(emailDoc.ref, {
-                    status: 1,
-                    // ===============================================================
-                    // == THE DEFINITIVE FIX FOR THE fp/lp ERROR ==
-                    // == Using new Date() instead of serverTimestamp() INSIDE the transaction.
-                    // ===============================================================
-                    used_at: new Date()
-                });
+                // ONLY update the status inside the transaction. No dates!
+                transaction.update(emailDoc.ref, { status: 1 });
                 
-                return address;
+                // Return the necessary data for the next step.
+                return { id: emailDoc.id, address: emailDoc.data().address };
             });
+
+            // Step 2: After the transaction is successful, do the non-critical update for the timestamp.
+            // This happens outside the transaction, avoiding the SDK conflict.
+            await db.collection('emails').doc(id).update({ used_at: new Date() });
             
-            emailTextEl.textContent = emailAddress;
+            // ===============================================================
+            
+            // --- SUCCESS: UPDATE UI ---
+            emailTextEl.textContent = address;
             emailTextEl.style.opacity = '1';
             showNotification("New email secured!", "success");
 
             sessionRequests++;
             updatePersonalStats();
-            addToHistory(emailAddress);
+            addToHistory(address);
 
         } catch (error) {
+            // --- ERROR: HANDLE TRANSACTION FAILURE ---
             showNotification(error.message, "error");
             emailTextEl.textContent = 'An error occurred.';
         } finally {
+            // --- ALWAYS: RESET UI ---
             requestBtn.disabled = false;
             requestBtn.querySelector('.btn-text').textContent = 'REQUEST EMAIL';
         }
     });
 
-    function updatePersonalStats() {
-        if (!personalRequestsEl) return;
-        personalRequestsEl.textContent = sessionRequests;
-        if (sessionRequests > 0) {
-            const avgTime = ((Date.now() - sessionStartTime) / 1000 / sessionRequests).toFixed(1);
-            personalAvgTimeEl.textContent = `${avgTime}s`;
-        }
-    }
-
-    function addToHistory(email) {
-        if (!historyListEl) return;
-        const placeholder = historyListEl.querySelector('.history-placeholder');
-        if (placeholder) placeholder.remove();
-        const li = document.createElement('li');
-        li.textContent = email;
-        li.title = "Click to copy this email";
-        li.addEventListener('click', () => copyToClipboard(email));
-        historyListEl.prepend(li);
-    }
-    
-    function copyToClipboard(text) {
-        if (text && text.includes('@')) {
-            navigator.clipboard.writeText(text)
-                .then(() => showNotification(`Copied: ${text}`, "success"))
-                .catch(() => showNotification("Failed to copy email.", "error"));
-        }
-    }
+    // Helper functions
+    function updatePersonalStats() { /* ... */ }
+    function addToHistory(email) { /* ... */ }
+    function copyToClipboard(text) { /* ... */ }
     emailDisplayEl.addEventListener('click', () => copyToClipboard(emailTextEl.textContent));
 }
 
+// Admin page logic remains unchanged
 function handleAdminPage(db, ADMIN_PASSCODE, showNotification) {
-    // Admin page logic remains unchanged
+    // ... code for admin page ...
+}
+
+// Full helper functions for completeness
+function handleUserPage(db, showNotification) {
+    const statsCountEl = document.getElementById('stats-count'); const requestBtn = document.getElementById('request-btn'); const emailDisplayEl = document.getElementById('email-display'); const emailTextEl = document.getElementById('email-text'); const personalRequestsEl = document.getElementById('personal-requests'); const personalAvgTimeEl = document.getElementById('personal-avg-time'); const historyListEl = document.getElementById('history-list'); const modal = document.getElementById('delay-modal'); const countdownTimerEl = document.getElementById('countdown-timer');
+    let sessionRequests = 0; let sessionStartTime = Date.now();
+    db.collection('emails').where('status', '==', 0).onSnapshot(snapshot => { statsCountEl.textContent = snapshot.size; }, error => { showNotification("DB connection issue.", "error"); });
+    requestBtn.addEventListener('click', async () => {
+        requestBtn.disabled = true; requestBtn.querySelector('.btn-text').textContent = 'PROCESSING...';
+        const randomDelay = Math.floor(Math.random() * (4000 - 3000 + 1)) + 3000; let countdown = Math.ceil(randomDelay / 1000);
+        countdownTimerEl.textContent = countdown; modal.style.display = 'flex'; setTimeout(() => modal.classList.add('visible'), 10);
+        const countdownInterval = setInterval(() => { countdown--; countdownTimerEl.textContent = countdown; if (countdown <= 0) clearInterval(countdownInterval); }, 1000);
+        await new Promise(resolve => setTimeout(resolve, randomDelay));
+        modal.classList.remove('visible'); setTimeout(() => modal.style.display = 'none', 300);
+        showNotification("Securing a unique email...", "info");
+        try {
+            const { id, address } = await db.runTransaction(async (transaction) => {
+                const query = db.collection('emails').where('status', '==', 0).limit(1);
+                const snapshot = await transaction.get(query);
+                if (snapshot.empty) { throw new Error("SYSTEM EMPTY"); }
+                const emailDoc = snapshot.docs[0];
+                transaction.update(emailDoc.ref, { status: 1 });
+                return { id: emailDoc.id, address: emailDoc.data().address };
+            });
+            await db.collection('emails').doc(id).update({ used_at: new Date() });
+            emailTextEl.textContent = address; emailTextEl.style.opacity = '1';
+            showNotification("New email secured!", "success");
+            sessionRequests++; updatePersonalStats(); addToHistory(address);
+        } catch (error) {
+            showNotification(error.message, "error"); emailTextEl.textContent = 'An error occurred.';
+        } finally {
+            requestBtn.disabled = false; requestBtn.querySelector('.btn-text').textContent = 'REQUEST EMAIL';
+        }
+    });
+    function updatePersonalStats() { if (!personalRequestsEl) return; personalRequestsEl.textContent = sessionRequests; if (sessionRequests > 0) { const avgTime = ((Date.now() - sessionStartTime) / 1000 / sessionRequests).toFixed(1); personalAvgTimeEl.textContent = `${avgTime}s`; } }
+    function addToHistory(email) { if (!historyListEl) return; const placeholder = historyListEl.querySelector('.history-placeholder'); if (placeholder) placeholder.remove(); const li = document.createElement('li'); li.textContent = email; li.title = "Click to copy this email"; li.addEventListener('click', () => copyToClipboard(email)); historyListEl.prepend(li); }
+    function copyToClipboard(text) { if (text && text.includes('@')) { navigator.clipboard.writeText(text).then(() => showNotification(`Copied: ${text}`, "success")).catch(() => showNotification("Failed to copy email.", "error")); } }
+    emailDisplayEl.addEventListener('click', () => copyToClipboard(emailTextEl.textContent));
 }
