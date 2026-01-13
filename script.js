@@ -1,15 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
-    // == YOUR FIREBASE CONFIGURATION ==
+    // == YOUR FIREBASE CONFIGURATION FOR THE EMAIL TOOL ==
     // =================================================================
     const firebaseConfig = {
-      apiKey: "AIzaSyCWmj_CjXpN7ivt-8cqhnv9kH-GMgWNu8A",
-      authDomain: "aero-github-db.firebaseapp.com",
-      projectId: "aero-github-db",
-      storageBucket: "aero-github-db.appspot.com",
-      messagingSenderId: "888535890076",
-      appId: "1:888535890076:web:a32193f50bba401e039559",
-      measurementId: "G-8JCKEHBRVJ"
+      apiKey: "AIzaSyCWmj_CjXpN7ivt-8cqhnv9kH-GMgWNu8A", // <-- Your EMAIL tool's config
+      authDomain: "aero-github-db.firebaseapp.com",     // <-- Your EMAIL tool's config
+      projectId: "aero-github-db",                      // <-- Your EMAIL tool's config
+      storageBucket: "aero-github-db.appspot.com",      // <-- Your EMAIL tool's config
+      messagingSenderId: "888535890076",                // <-- Your EMAIL tool's config
+      appId: "1:888535890076:web:a32193f50bba401e039559",// <-- Your EMAIL tool's config
+      measurementId: "G-8JCKEHBRVJ"                     // <-- Your EMAIL tool's config
     };
     // =================================================================
 
@@ -17,22 +17,22 @@ document.addEventListener('DOMContentLoaded', () => {
         firebase.initializeApp(firebaseConfig);
     } catch (e) {
         showNotification("FATAL ERROR: Could not connect to the database.", "error");
-        console.error(e);
-        return;
+        console.error("Firebase initialization failed.", e);
+        return; // Stop execution if Firebase fails
     }
 
     const db = firebase.firestore();
     const ADMIN_PASSCODE = "123456789";
 
-    // --- Dynamic Background & Theme Toggle (No changes) ---
-    const canvas = document.getElementById('background-canvas'); if (canvas) { const ctx = canvas.getContext('2d'); let width, height, grid; const mouse = { x: 0, y: 0, radius: 60 }; const setup = () => { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; grid = []; const cellSize = 20; for (let y = 0; y < height + cellSize; y += cellSize) { for (let x = 0; x < width + cellSize; x += cellSize) { grid.push({ x, y }); } } }; const draw = () => { if (!ctx) return; ctx.clearRect(0, 0, width, height); const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-color').trim(); const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(); grid.forEach(point => { const dist = Math.hypot(point.x - mouse.x, point.y - mouse.y); const size = Math.max(0.5, 2 - dist / 150); if (dist < mouse.radius) { ctx.fillStyle = primaryColor; ctx.globalAlpha = Math.max(0, 0.8 - dist / mouse.radius); } else { ctx.fillStyle = gridColor; ctx.globalAlpha = 0.5; } ctx.beginPath(); ctx.arc(point.x, point.y, size, 0, Math.PI * 2); ctx.fill(); }); requestAnimationFrame(draw); }; window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; }); window.addEventListener('resize', setup); setup(); draw(); }
-    const themeToggle = document.getElementById('theme-toggle'); if (themeToggle) { themeToggle.addEventListener('click', () => { document.documentElement.classList.toggle('light-mode'); localStorage.setItem('theme', document.documentElement.classList.contains('light-mode') ? 'light' : 'dark'); }); } if (localStorage.getItem('theme') === 'light') { document.documentElement.classList.add('light-mode'); }
-    
-    // --- NOTIFICATION HANDLER ---
+    // --- Reusable Notification Handler ---
     function showNotification(message, type = 'info') {
-        const container = document.getElementById('notification-container'); if (!container) return;
-        const toast = document.createElement('div'); toast.className = `toast-notification ${type}`;
-        let icon = 'ℹ️'; if (type === 'success') icon = '✅'; if (type === 'error') icon = '❌';
+        const container = document.getElementById('notification-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        let icon = 'ℹ️';
+        if (type === 'success') icon = '✅';
+        if (type === 'error') icon = '❌';
         toast.innerHTML = `<div class="icon">${icon}</div><div class="message">${message}</div>`;
         container.appendChild(toast);
         setTimeout(() => { toast.remove(); }, 4500);
@@ -47,10 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =================================================
-// == USER PAGE LOGIC (ALL FEATURES INTEGRATED & STABLE)
+// == USER PAGE LOGIC (WITH PROFESSIONAL DELAY & TRANSACTION FIX)
 // =================================================
 function handleUserPage(db, showNotification) {
-    // DOM Elements
     const statsCountEl = document.getElementById('stats-count');
     const requestBtn = document.getElementById('request-btn');
     const emailDisplayEl = document.getElementById('email-display');
@@ -63,54 +62,83 @@ function handleUserPage(db, showNotification) {
     let sessionRequests = 0;
     let sessionStartTime = Date.now();
 
-    // Real-time listener for global stats
+    // Real-time listener for stats
     db.collection('emails').where('status', '==', 0).onSnapshot(snapshot => {
         statsCountEl.textContent = snapshot.size;
-    }, error => {
-        showNotification("DB connection issue.", "error");
     });
 
-    // Main Request Logic
+    // --- MAIN REQUEST LOGIC WITH THE DELAY ---
     requestBtn.addEventListener('click', async () => {
+        // --- STEP 1: INITIAL UI LOCK & RANDOM DELAY CALCULATION ---
         requestBtn.disabled = true;
-        requestBtn.querySelector('.btn-text').textContent = 'REQUESTING...';
-        emailDisplayEl.style.pointerEvents = 'none'; // Disable click during request
-        emailTextEl.textContent = 'Requesting...';
+        requestBtn.querySelector('.btn-text').textContent = 'PLEASE WAIT...';
+        emailDisplayEl.style.pointerEvents = 'none';
+
+        const randomDelay = Math.floor(Math.random() * (4000 - 3000 + 1)) + 3000; // 3 to 4 seconds
+        let countdown = Math.ceil(randomDelay / 1000);
+
+        emailTextEl.textContent = `Securing connection...`;
         emailTextEl.style.opacity = '0.7';
 
-        showNotification("Requesting new email...", "info");
+        // --- STEP 2: COUNTDOWN TIMER FOR USER FEEDBACK ---
+        showNotification(`Processing request. Please wait ${countdown} seconds...`, 'info');
         
-        try {
-            const query = db.collection('emails').where('status', '==', 0).limit(1);
-            const snapshot = await query.get();
-            if (snapshot.empty) throw new Error("SYSTEM EMPTY");
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                showNotification(`Please wait ${countdown} more second(s)...`, 'info');
+            }
+        }, 1000);
 
-            const emailDoc = snapshot.docs[0];
-            const emailAddress = emailDoc.data().address;
+        // --- STEP 3: WAIT FOR THE DELAY TO FINISH ---
+        await new Promise(resolve => setTimeout(resolve, randomDelay));
+        clearInterval(countdownInterval);
+
+        // --- STEP 4: EXECUTE THE SECURE TRANSACTION AFTER DELAY ---
+        emailTextEl.textContent = 'Acquiring email...';
+        showNotification('Finding an available email...', 'info');
+
+        try {
+            const emailAddress = await db.runTransaction(async (transaction) => {
+                const query = db.collection('emails').where('status', '==', 0).limit(1);
+                const snapshot = await transaction.get(query);
+                if (snapshot.empty) throw new Error("SYSTEM EMPTY");
+                
+                const emailDoc = snapshot.docs[0];
+                const address = emailDoc.data().address;
+                
+                transaction.update(emailDoc.ref, {
+                    status: 1,
+                    used_at: new Date()
+                });
+                
+                return address;
+            });
             
-            await db.collection('emails').doc(emailDoc.id).update({ status: 1, used_at: new Date() });
-            
-            // --- UI Update ---
+            // --- SUCCESS: UPDATE UI ---
             emailTextEl.textContent = emailAddress;
             emailTextEl.style.opacity = '1';
-            showNotification("New email received!", "success");
+            showNotification("New email secured and received!", "success");
 
-            // Update stats and history
             sessionRequests++;
             updatePersonalStats();
             addToHistory(emailAddress);
+
         } catch (error) {
+            // --- ERROR: UPDATE UI ---
             showNotification(error.message, "error");
             emailTextEl.textContent = 'An error occurred. Try again.';
         } finally {
+            // --- ALWAYS: RESET UI ---
             requestBtn.disabled = false;
             requestBtn.querySelector('.btn-text').textContent = 'REQUEST EMAIL';
-            emailDisplayEl.style.pointerEvents = 'auto'; // Re-enable click
+            emailDisplayEl.style.pointerEvents = 'auto';
         }
     });
 
-    // Helper Functions
+    // --- Helper Functions ---
     function updatePersonalStats() {
+        if (!personalRequestsEl) return;
         personalRequestsEl.textContent = sessionRequests;
         if (sessionRequests > 0) {
             const avgTime = ((Date.now() - sessionStartTime) / 1000 / sessionRequests).toFixed(1);
@@ -119,6 +147,7 @@ function handleUserPage(db, showNotification) {
     }
 
     function addToHistory(email) {
+        if (!historyListEl) return;
         const placeholder = historyListEl.querySelector('.history-placeholder');
         if (placeholder) placeholder.remove();
         const li = document.createElement('li');
@@ -135,16 +164,50 @@ function handleUserPage(db, showNotification) {
                 .catch(() => showNotification("Failed to copy email.", "error"));
         }
     }
-
     emailDisplayEl.addEventListener('click', () => copyToClipboard(emailTextEl.textContent));
 }
 
 // =================================================
-// == ADMIN PAGE LOGIC (WITH NOTIFICATIONS)
+// == ADMIN PAGE LOGIC (for the EMAIL tool)
 // =================================================
 function handleAdminPage(db, ADMIN_PASSCODE, showNotification) {
     const uploadBtn = document.getElementById('upload-btn');
-    const emailInput = document.getElementById('email-input');
+    const emailInput = document.getElementById('email-input'); // Assuming textarea for email list
     const passcode_input = document.getElementById('passcode-input');
-    uploadBtn.addEventListener('click', async () => { if (passcode_input.value !== ADMIN_PASSCODE) { showNotification('Invalid Passcode!', 'error'); return; } const text = emailInput.value; const newEmails = [...new Set(text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi) || [])]; if (newEmails.length === 0) { showNotification('No valid emails found.', 'error'); return; } uploadBtn.disabled = true; uploadBtn.querySelector('.btn-text').textContent = 'UPLOADING...'; showNotification(`Uploading ${newEmails.length} emails...`, 'info'); const chunks = []; for (let i = 0; i < newEmails.length; i += 499) { chunks.push(newEmails.slice(i, i + 499)); } try { for (const chunk of chunks) { const batch = db.batch(); chunk.forEach(email => { const docRef = db.collection('emails').doc(email.toLowerCase()); batch.set(docRef, { address: email.toLowerCase(), status: 0 }, { merge: true }); }); await batch.commit(); } showNotification(`Successfully uploaded ${newEmails.length} emails!`, 'success'); emailInput.value = ''; } catch (error) { showNotification(`Upload Error: ${error.message}`, 'error'); } finally { uploadBtn.disabled = false; uploadBtn.querySelector('.btn-text').textContent = 'UPLOAD EMAILS'; } });
+
+    if(!uploadBtn) return; // Make sure we are on the admin page
+
+    uploadBtn.addEventListener('click', async () => {
+        if (passcode_input.value !== ADMIN_PASSCODE) { showNotification('Invalid Passcode!', 'error'); return; }
+        
+        const text = emailInput.value;
+        const newEmails = [...new Set(text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi) || [])];
+        
+        if (newEmails.length === 0) { showNotification('No valid emails found.', 'error'); return; }
+
+        uploadBtn.disabled = true;
+        uploadBtn.querySelector('.btn-text').textContent = 'UPLOADING...';
+        showNotification(`Uploading ${newEmails.length} emails...`, 'info');
+        
+        const chunks = [];
+        for (let i = 0; i < newEmails.length; i += 499) { chunks.push(newEmails.slice(i, i + 499)); }
+
+        try {
+            for (const chunk of chunks) {
+                const batch = db.batch();
+                chunk.forEach(email => {
+                    const docRef = db.collection('emails').doc(email.toLowerCase());
+                    batch.set(docRef, { address: email.toLowerCase(), status: 0 }, { merge: true });
+                });
+                await batch.commit();
+            }
+            showNotification(`Successfully uploaded ${newEmails.length} emails!`, 'success');
+            emailInput.value = '';
+        } catch (error) {
+            showNotification(`Upload Error: ${error.message}`, 'error');
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.querySelector('.btn-text').textContent = 'UPLOAD EMAILS';
+        }
+    });
 }
