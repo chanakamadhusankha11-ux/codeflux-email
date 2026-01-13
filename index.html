@@ -3,46 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aero System - Aurora UI</title>
+    <title>Aero System - Final</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="notification-container"></div>
-    <div class="aurora-background"></div> <!-- NEW: For the animated background -->
     <canvas id="background-canvas"></canvas>
 
-    <div class="top-bar"><!-- Top bar content remains the same --></div>
+    <div class="top-bar">
+        <a href="admin.html" class="admin-link" title="Admin Panel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1L9 4h6l-3-3zM3 5h18v2H3V5zm6 4l-3 3h12l-3-3h-6zm-6 5h18v2H3v-2zm9 3l-3 3h6l-3-3z"/></svg>
+        </a>
+        <button id="theme-toggle" title="Toggle Theme">
+            <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+    </div>
 
     <main class="main-container">
         <header class="header"><h1>AERO</h1><p>Email Distribution System</p></header>
 
         <section class="card">
-            <div class="stats-display"><span id="stats-count" class="counter-value">--</span><label>Available Emails</label></div>
-            <div id="email-display" class="copyable"><span id="email-text">Loading System...</span></div>
+            <div class="stats-display">
+                <span id="stats-count" class="counter-value">--</span><label>Available Emails</label>
+            </div>
+            
+            <div id="email-display" class="copyable">
+                <span id="email-text">Loading System...</span>
+            </div>
+
             <button id="request-btn"><div class="btn-bg"></div><span class="btn-text">REQUEST EMAIL</span></button>
         </section>
 
         <section class="card secondary-card">
             <div class="personal-stats-grid">
-                <div>
-                    <label>
-                        <!-- NEW: Icon added -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                        Requested (Session)
-                    </label>
-                    <span id="personal-requests">0</span>
-                </div>
-                <div>
-                    <label>
-                        <!-- NEW: Icon added -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        Avg. Time / Request
-                    </label>
-                    <span id="personal-avg-time">0s</span>
-                </div>
+                <div><label><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>Requested (Session)</label><span id="personal-requests">0</span></div>
+                <div><label><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Avg. Time / Request</label><span id="personal-avg-time">0s</span></div>
             </div>
             <div class="history-container">
                 <label>Session History</label>
@@ -51,30 +50,23 @@
         </section>
     </main>
 
-
-    <!-- ... Your other scripts ... -->
-    <script src="script.js"></script>
-
-    <!-- NEW: MODAL POPUP FOR COUNTDOWN -->
+    <!-- MODAL POPUP FOR COUNTDOWN -->
     <div id="delay-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
-            <div class="spinner"></div>
+            <div class="spinner-wrapper">
+                <div class="spinner"></div>
+                <span id="countdown-timer">2</span>
+            </div>
             <h2>Processing Request</h2>
-            <p>Due to high traffic, we are securing your request.</p>
-            <p>Please wait <span id="countdown-timer">5</span> seconds...</p>
+            <p>Securing a unique email for you from our encrypted pool.</p>
         </div>
     </div>
 
-
-
-
-
-    
-
-    <!-- Scripts remain unchanged -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- App Script -->
     <script src="script.js"></script>
 </body>
 </html>
-
