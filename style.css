@@ -115,9 +115,9 @@ textarea { min-height: 150px; resize: vertical; font-family: var(--font-mono); }
 #upload-btn:hover { background: #27ae60; }
 .back-link { display: block; margin-top: 25px; color: var(--primary); text-decoration: none; font-weight: 500; }
 
-/* ======================================= */
-/* ==      MODAL POPUP STYLES           == */
-/* ======================================= */
+/* ================================================= */
+/* ==      ADVANCED GLASSMORPHISM POPUP STYLES      == */
+/* ================================================= */
 
 .modal-overlay {
     position: fixed;
@@ -125,65 +125,107 @@ textarea { min-height: 150px; resize: vertical; font-family: var(--font-mono); }
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
+    background-color: rgba(13, 17, 23, 0.6); /* Darker overlay */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 10000;
     opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.modal-content {
-    background-color: var(--surface);
-    padding: 30px 40px;
-    border-radius: 16px;
-    box-shadow: -10px -10px 20px var(--shadow-light), 10px 10px 20px var(--shadow-dark);
-    text-align: center;
-    transform: scale(0.9);
-    transition: transform 0.3s ease;
+    transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .modal-overlay.visible {
     opacity: 1;
 }
 
+.modal-content {
+    /* The Glassmorphism Card Effect */
+    background: var(--surface-color);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 32px var(--shadow-color);
+    padding: 30px 40px;
+    text-align: center;
+    
+    /* Animation for entry */
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    width: 90vw;
+    max-width: 400px;
+}
+
 .modal-overlay.visible .modal-content {
-    transform: scale(1);
+    transform: translateY(0) scale(1);
+    opacity: 1;
 }
 
 .modal-content h2 {
     font-family: var(--font-mono);
-    color: var(--primary);
+    color: var(--text-primary);
     margin-bottom: 10px;
+    background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .modal-content p {
     color: var(--text-secondary);
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    line-height: 1.5;
 }
 
-.modal-content p:last-child {
-    font-size: 1.2rem;
-    font-weight: 600;
+.modal-content .countdown-wrapper {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
     color: var(--text-primary);
 }
 
-/* Spinner Animation */
+/* Advanced Spinner Animation */
 .spinner {
-    width: 56px;
-    height: 56px;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 25px;
+    position: relative;
+}
+
+.spinner::before,
+.spinner::after {
+    content: '';
+    position: absolute;
     border-radius: 50%;
-    border: 5px solid var(--border-color);
-    border-top-color: var(--primary);
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
+    inset: 0;
+}
+
+.spinner::before {
+    background: radial-gradient(circle at 30% 30%, var(--primary-glow), var(--secondary-glow));
+    animation: spin 1.5s linear infinite;
+}
+
+.spinner::after {
+    background: var(--surface);
+    inset: 5px; /* Creates the donut shape */
 }
 
 @keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Override countdown text to sit on top of the spinner */
+#countdown-timer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
 }
