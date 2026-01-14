@@ -3,48 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aero Admin</title>
+    <title>Aero System - Admin Panel</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="aurora-background"></div>
-    <!-- index.html & admin.html -->
-
-<body>
-    <!-- NEW: NOTIFICATION CONTAINER -->
-    <div id="notification-container"></div>
-
+    <div id="notification-container" class="toast-container"></div>
     <canvas id="background-canvas"></canvas>
-    <!-- The rest of your body content remains the same -->
-    
 
-    <canvas id="background-canvas"></canvas>
-    <main class="main-container">
-        <header class="header"><h1>AERO ADMIN</h1></header>
-        <section class="card">
-            <h2>Upload Email List</h2>
-            <textarea id="email-input" placeholder="email1@example.com&#10;email2@example.com&#10;..."></textarea>
-            <input type="password" id="passcode-input" placeholder="Enter Admin Passcode">
-            <button id="upload-btn">
-                 <div class="btn-bg"></div>
-                 <span class="btn-text">UPLOAD EMAILS</span>
-            </button>
-            <div id="system-message"></div>
-            <a href="index.html" class="back-link">← Back to User Page</a>
+    <div class="top-bar">
+        <a href="index.html" class="icon-btn-premium" title="Back to User Panel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span class="tooltip">Back to User Panel</span>
+        </a>
+        
+        <div class="logo">
+            <span class="logo-icon">🔧</span>
+            <span class="logo-text">Admin Panel</span>
+        </div>
+        
+        <button id="theme-toggle" class="icon-btn-premium" title="Toggle Theme">
+            <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <span class="tooltip">Toggle Theme</span>
+        </button>
+    </div>
+
+    <main class="main-container admin-container">
+        <header class="hero-header">
+            <h1 class="hero-title">
+                <span class="gradient-text">ADMIN</span> DASHBOARD
+            </h1>
+            <p class="hero-subtitle">
+                Manage your email database and monitor system performance
+            </p>
+        </header>
+
+        <!-- Stats Overview -->
+        <section class="card-premium" aria-labelledby="stats-title">
+            <h2 id="stats-title" class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                System Overview
+            </h2>
+            
+            <div class="stats-grid-premium" id="stats-overview">
+                <div class="stat-item">
+                    <span class="stat-value" id="total-emails">0</span>
+                    <span class="stat-label">Total Emails</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="available-emails">0</span>
+                    <span class="stat-label">Available</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="used-emails">0</span>
+                    <span class="stat-label">Used</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="success-rate">100%</span>
+                    <span class="stat-label">Success Rate</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Email Upload Section -->
+        <section class="card-premium" aria-labelledby="upload-title">
+            <h2 id="upload-title" class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                Upload Emails
+            </h2>
+            
+            <div class="admin-form">
+                <div class="form-group">
+                    <label for="passcode-input" class="form-label">Admin Passcode</label>
+                    <input type="password" id="passcode-input" class="input-field" 
+                           placeholder="Enter admin passcode" autocomplete="current-password">
+                    <div class="form-hint">Required for security</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email-input" class="form-label">Email List</label>
+                    <textarea id="email-input" class="text-area" rows="10" 
+                              placeholder="Paste emails here (one per line or comma-separated)
+Example:
+user1@domain.com
+user2@domain.com
+user3@domain.com"></textarea>
+                    <div class="form-hint" id="email-count">0 emails detected</div>
+                </div>
+                
+                <div class="action-container">
+                    <button id="upload-btn" class="button button--primary">
+                        <span class="button-content">
+                            <span class="button-icon">📤</span>
+                            <span class="button-text">UPLOAD EMAILS</span>
+                        </span>
+                    </button>
+                    
+                    <div class="upload-options">
+                        <label class="option-toggle">
+                            <input type="checkbox" id="skip-duplicates" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Skip duplicate emails</span>
+                        </label>
+                        
+                        <label class="option-toggle">
+                            <input type="checkbox" id="validate-emails" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Validate email format</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="card-premium" aria-labelledby="activity-title">
+            <h2 id="activity-title" class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                Recent Activity
+            </h2>
+            
+            <div class="activity-list" id="activity-list">
+                <div class="activity-placeholder">
+                    <div class="placeholder-icon">📊</div>
+                    <div class="placeholder-text">
+                        <p>No recent activity</p>
+                        <small>Upload emails to see activity logs</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="card-premium" aria-labelledby="actions-title">
+            <h2 id="actions-title" class="section-title">⚡ Quick Actions</h2>
+            
+            <div class="quick-actions-grid">
+                <button class="quick-action-btn" id="refresh-stats-btn">
+                    <span class="action-icon">🔄</span>
+                    <span class="action-text">Refresh Stats</span>
+                </button>
+                
+                <button class="quick-action-btn" id="clear-db-btn">
+                    <span class="action-icon">🗑️</span>
+                    <span class="action-text">Clear Used Emails</span>
+                </button>
+                
+                <button class="quick-action-btn" id="export-data-btn">
+                    <span class="action-icon">📥</span>
+                    <span class="action-text">Export Data</span>
+                </button>
+                
+                <button class="quick-action-btn" id="view-logs-btn">
+                    <span class="action-icon">📋</span>
+                    <span class="action-text">View Logs</span>
+                </button>
+            </div>
         </section>
     </main>
 
     <!-- Firebase SDKs -->
-   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <!-- App Script -->
     <script src="script.js"></script>
 </body>
-
 </html>
-
-
-
